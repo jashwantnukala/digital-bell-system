@@ -6,17 +6,17 @@
   <title>View Timetable</title>
   <style>
     body {
-      font-family: "Poppins", sans-serif;
-      background: #eef2ff;
-      text-align: center;
-      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f9ff;
       padding: 20px;
+      color: #1e3a8a;
     }
     h1 {
-      color: #312e81;
+      text-align: center;
+      color: #1e40af;
     }
     button {
-      background-color: #6366f1;
+      background-color: #2563eb;
       color: white;
       border: none;
       padding: 10px 20px;
@@ -25,41 +25,39 @@
       cursor: pointer;
       font-size: 16px;
     }
-    button:hover { background-color: #4f46e5; }
+    button:hover {
+      background-color: #1d4ed8;
+    }
     table {
-      width: 95%;
-      margin: 20px auto;
+      width: 100%;
       border-collapse: collapse;
+      margin-top: 20px;
       background: white;
       border-radius: 8px;
       overflow: hidden;
     }
     th, td {
       padding: 10px;
-      border: 1px solid #ddd;
+      border: 1px solid #93c5fd;
+      text-align: center;
     }
-    th { background-color: #c7d2fe; }
-    a {
-      display: inline-block;
-      margin-top: 10px;
-      color: #4f46e5;
-      text-decoration: none;
+    th {
+      background-color: #bfdbfe;
     }
   </style>
 </head>
 <body>
-  <h1>👀 View Timetable</h1>
-  <div>
-    <button id="batch1Btn">Batch 1</button>
-    <button id="batch2Btn">Batch 2</button>
+  <h1>Current Timetable</h1>
+  <div style="text-align:center;">
+    <button id="batch1Btn">View Batch 1</button>
+    <button id="batch2Btn">View Batch 2</button>
   </div>
-  <table id="timetable">
+  <table id="timetableTable">
     <thead>
       <tr><th>Period</th><th>Time</th><th>Subject</th></tr>
     </thead>
     <tbody></tbody>
   </table>
-  <a href="index.html">⬅️ Back to Home</a>
 
   <script type="module" defer>
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
@@ -78,22 +76,26 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const tbody = document.querySelector("#timetable tbody");
 
     function renderTable(data) {
+      const tbody = document.querySelector("#timetableTable tbody");
       tbody.innerHTML = "";
-      data.forEach(r => {
-        tbody.innerHTML += `<tr><td>${r.period}</td><td>${r.time}</td><td>${r.subject}</td></tr>`;
+      data.forEach(row => {
+        tbody.innerHTML += `<tr><td>${row.period}</td><td>${row.time}</td><td>${row.subject}</td></tr>`;
       });
     }
 
     async function loadBatch(batch) {
       const snapshot = await get(ref(db, `timetables/${batch}`));
-      renderTable(snapshot.exists() ? snapshot.val() : []);
+      if (snapshot.exists()) {
+        renderTable(snapshot.val());
+      } else {
+        alert("No data found for this batch!");
+      }
     }
 
-    document.getElementById("batch1Btn").onclick = () => loadBatch("Batch1");
-    document.getElementById("batch2Btn").onclick = () => loadBatch("Batch2");
+    document.getElementById("batch1Btn").addEventListener("click", () => loadBatch("Batch1"));
+    document.getElementById("batch2Btn").addEventListener("click", () => loadBatch("Batch2"));
   </script>
 </body>
 </html>
