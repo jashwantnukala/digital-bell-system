@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Announcements — Teacher</title>
+  <style>
+    :root { --card-bg: rgba(255,255,255,0.55); --accent:#007aff; --danger:#ff3b30; --muted:#666; }
+    body { margin:0; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+           background: linear-gradient(135deg,#eef7ff,#ffffff); padding:28px 12px; display:flex; flex-direction:column; align-items:center; }
+    .nav { width:90%; max-width:900px; display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+    .nav h1 { margin:0; font-size:22px; font-weight:600; display:flex; gap:10px; align-items:center; }
+    .nav button { padding:10px 14px; border-radius:10px; border:none; cursor:pointer; background:var(--danger); color:white; }
+    .card { width:90%; max-width:900px; background:var(--card-bg); backdrop-filter:blur(22px); border-radius:18px; padding:18px; box-shadow:0 8px 30px rgba(0,0,0,0.08); }
+    .form-row { display:flex; gap:12px; margin-bottom:12px; }
+    input, textarea { width:100%; padding:12px; border-radius:10px; border:1px solid rgba(0,0,0,0.12); font-size:15px; }
+    textarea { resize:vertical; min-height:86px; }
+    .controls { display:flex; gap:12px; margin-top:8px; }
+    .btn { padding:10px 16px; border-radius:12px; border:none; cursor:pointer; background:rgba(255,255,255,0.6); }
+    .btn.primary { background:var(--accent); color:white; }
+    .list { margin-top:18px; }
+    .ann { background:rgba(255,255,255,0.9); padding:14px; border-radius:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-start; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
+    .ann-details { max-width:76%; }
+    .ann h3 { margin:0 0 6px 0; font-size:16px; }
+    .ann p { margin:0; color:#222; }
+    .ann .meta { color:var(--muted); font-size:13px; margin-top:8px; }
+    .ann-actions { display:flex; gap:8px; align-items:center; }
+    .small { padding:8px 10px; border-radius:8px; border:none; cursor:pointer; }
+    .small.edit { background:#ffd; }
+    .small.delete { background:#ffb3b3; }
+    a.home { margin-top:14px; color:var(--accent); text-decoration:none; font-weight:500; display:inline-block; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <h1>📣 Announcements — Manage</h1>
+    <button id="signOutBtn">Sign out</button>
+  </div>
+
+  <div class="card" id="postCard">
+    <div style="font-weight:600; margin-bottom:10px;">Post New Announcement</div>
+    <div class="form-row">
+      <input id="title" placeholder="Title (short)" />
+    </div>
+    <div class="form-row">
+      <textarea id="message" placeholder="Write message..."></textarea>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="postBtn">Post Announcement</button>
+      <button class="btn" id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <div class="card list" id="listCard" style="margin-top:16px;">
+    <div style="font-weight:600; margin-bottom:12px;">All Announcements</div>
+    <div id="annList">Loading...</div>
+  </div>
+
+  <a class="home" href="teacher-index.html">← Back to Teacher Home</a>
+
+  <!-- Firebase v8 CDN -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    // Your Firebase config (copied from your snippet but using v8 CDN)
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3Lv_9EiVBVy5aXwiYOn0pgZu31ykFOGM",
+      authDomain: "digitalbellplisworkthistime.firebaseapp.com",
+      databaseURL: "https://digitalbellplisworkthistime-default-rtdb.firebaseio.com",
+      projectId: "digitalbellplisworkthistime",
+      storageBucket: "digitalbellplisworkthistime.firebasestorage.app",
+      messagingSenderId: "829189847707",
+      appId: "1:829189847707:web:99b13d5fe551b54d9ce43e",
+      measurementId: "G-W0PYZY1R1M"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    const adminUID = "lPvZ7WGuTVP1LcYvKjGYtOj1GBD3";
+
+    // ---- Auth guard: allow only logged-in teacher (adminUID) ----
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        // not logged in — send to login (index)
+        window.location.href = "index.html";
+        return;
+      }
+      if (user.uid !== adminUID) {
+        alert("Access denied: Teacher only.");
+        window.location.href = "index.html";
+        return;
+      }
+      // OK — teacher allowed; load announcements
+      loadAnnouncements();
+    });
+
+    document.getElementById('signOutBtn').onclick = () => auth.signOut().then(()=>window.location.href='index.html');
+
+    // ---- Post announcement ----
+    document.getElementById('postBtn').onclick = () => {
+      const title = document.getElementById('title').value.trim();
+      const message = document.getElementById('message').value.trim();
+      if (!title || !message) { alert('Please fill title and message'); return; }
+
+      const payload = {
+        title, message,
+        timestamp: Date.now(),
+        postedBy: (auth.currentUser && auth.currentUser.displayName) ? auth.currentUser.displayName : auth.currentUser.email
+      };
+
+      const newRef = db.ref('announcements').push();
+      newRef.set(payload).then(()=> {
+        // log to recentChanges
+        db.ref('recentChanges').push({
+          timestamp: Date.now(),
+          teacher: payload.postedBy,
+          batch: 'All',
+          day: '',
+          period: '',
+          action: `Posted announcement: ${title}`
+        });
+        document.getElementById('title').value = '';
+        document.getElementById('message').value = '';
+      }).catch(err => alert('Save failed: ' + err.message));
+    };
+
+    document.getElementById('clearBtn').onclick = () => {
+      document.getElementById('title').value = '';
+      document.getElementById('message').value = '';
+    };
+
+    // ---- Load announcements and render list ----
+    function loadAnnouncements() {
+      const container = document.getElementById('annList');
+      container.innerHTML = 'Loading...';
+
+      db.ref('announcements').orderByChild('timestamp').once('value', snap => {
+        container.innerHTML = '';
+        if (!snap.exists()) { container.innerHTML = '<div style="color:#666">No announcements yet.</div>'; return; }
+
+        // entries newest first
+        const entries = [];
+        snap.forEach(s => entries.push({ id: s.key, ...s.val() }));
+        entries.reverse();
+
+        entries.forEach(e => {
+          const date = new Date(e.timestamp || Date.now()).toLocaleString();
+          const postedBy = e.postedBy || 'Teacher';
+          const html = document.createElement('div');
+          html.className = 'ann';
+          html.innerHTML = `
+            <div class="ann-details">
+              <h3>${escapeHtml(e.title)}</h3>
+              <p>${escapeHtml(e.message)}</p>
+              <div class="meta">Posted by ${escapeHtml(postedBy)} • ${date}</div>
+            </div>
+            <div class="ann-actions">
+              <button class="small edit" onclick="editAnnouncement('${e.id}')">Edit</button>
+              <button class="small delete" onclick="deleteAnnouncement('${e.id}','${escapeJs(e.title)}')">Delete</button>
+            </div>
+          `;
+          container.appendChild(html);
+        });
+      });
+
+      // attach live listener to refresh automatically
+      db.ref('announcements').orderByChild('timestamp').on('value', () => {
+        // re-render list on any change
+        loadAnnouncements();
+      });
+    }
+
+    // ---- Delete ----
+    function deleteAnnouncement(id, titleSafe) {
+      if (!confirm('Delete announcement \"' + titleSafe + '\" ?')) return;
+      db.ref('announcements/' + id).remove().then(()=> {
+        db.ref('recentChanges').push({
+          timestamp: Date.now(),
+          teacher: (auth.currentUser && auth.currentUser.displayName) ? auth.currentUser.displayName : auth.currentUser.email,
+          batch: 'All', day:'', period:'', action: `Deleted announcement: ${titleSafe}`
+        });
+      }).catch(err => alert('Delete failed: ' + err.message));
+    }
+
+    // ---- Edit (simple inline prompt modal) ----
+    function editAnnouncement(id) {
+      // load entry
+      db.ref('announcements/' + id).once('value').then(snap => {
+        if (!snap.exists()) return alert('Item not found');
+        const val = snap.val();
+        const newTitle = prompt('Edit title', val.title);
+        if (newTitle === null) return; // cancelled
+        const newMessage = prompt('Edit message', val.message);
+        if (newMessage === null) return;
+        db.ref('announcements/' + id).update({
+          title: newTitle,
+          message: newMessage,
+          editedAt: Date.now()
+        }).then(()=> {
+          db.ref('recentChanges').push({
+            timestamp: Date.now(),
+            teacher: (auth.currentUser && auth.currentUser.displayName) ? auth.currentUser.displayName : auth.currentUser.email,
+            batch:'All', day:'', period:'', action: `Edited announcement: ${newTitle}`
+          });
+        }).catch(err => alert('Update failed: ' + err.message));
+      });
+    }
+
+    // simple escapes
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function escapeJs(s){ return String(s||'').replace(/'/g,"\\'").replace(/\"/g,'\\\"'); }
+  </script>
+</body>
+</html>
