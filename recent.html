@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recent Changes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background: #333;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f0f0f0;
+        }
+
+        .timestamp {
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Recent Timetable Changes</h2>
+
+    <table id="changesTable">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Teacher</th>
+                <th>Batch</th>
+                <th>Day</th>
+                <th>Period</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="changesBody">
+            <tr><td colspan="6">Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+/* ---- Your Firebase Config Here ---- */
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "YOUR_DB_URL",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+/* ---- Fetching and Displaying Recent Changes ---- */
+function loadRecentChanges() {
+    const tbody = document.getElementById("changesBody");
+    tbody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+
+    firebase.database().ref("recentChanges")
+        .orderByChild("timestamp")
+        .limitToLast(50)  // last 50 changes
+        .once("value", (snapshot) => {
+
+            tbody.innerHTML = "";
+
+            const data = snapshot.val();
+            if (!data) {
+                tbody.innerHTML = "<tr><td colspan='6'>No recent updates found.</td></tr>";
+                return;
+            }
+
+            const entries = Object.values(data).reverse(); // newest first
+
+            entries.forEach(entry => {
+                const date = new Date(entry.timestamp).toLocaleString();
+
+                const row = `
+                    <tr>
+                        <td class="timestamp">${date}</td>
+                        <td>${entry.teacher}</td>
+                        <td>${entry.batch}</td>
+                        <td>${entry.day}</td>
+                        <td>${entry.period}</td>
+                        <td>${entry.action}</td>
+                    </tr>
+                `;
+
+                tbody.innerHTML += row;
+            });
+        });
+}
+
+loadRecentChanges();
+</script>
+
+</body>
+</html>
