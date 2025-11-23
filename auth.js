@@ -35,7 +35,7 @@ function login() {
 
         })
         .catch((error) => {
-            alert("Login failed: " + error.message);
+            alert("Login failed: Invalid Login Credentials. Contact admin for any issues.");
         });
 }
 
