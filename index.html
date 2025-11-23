@@ -22,7 +22,7 @@
     .nav {
       margin: 30px;
     }
-    a {
+    button, a {
       display: inline-block;
       text-decoration: none;
       background-color: #0077cc;
@@ -32,40 +32,54 @@
       margin: 10px;
       font-weight: bold;
       transition: 0.3s;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
     }
-    a:hover {
+    button:hover, a:hover {
       background-color: #005fa3;
     }
-    footer {
-      margin-top: 60px;
-      color: #333;
-      font-size: 14px;
+    #login-box {
+      margin-top: 30px;
+      padding: 20px;
+    }
+    input {
+      padding: 10px;
+      width: 250px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+      margin: 10px 0;
     }
   </style>
 </head>
 <body>
+
   <header>
     <h1>🔔 Digital Smart Bell System</h1>
-    <p>Manage and View Class Timetables Instantly</p>
+    <p>Manage and View Class Timetables Securely</p>
   </header>
 
-  <div class="nav">
-    <a href="edit.html">📝 Edit Timetable</a>
-    <a href="view.html">👀 View Timetable</a>
+  <h2>Select Your Role</h2>
+  <button onclick="selectRole('student')">I am a Student</button>
+  <button onclick="selectRole('teacher')">I am a Teacher</button>
+
+  <div id="login-box" style="display:none;">
+    <h3>Login</h3>
+    <input id="email" type="email" placeholder="Enter Email"><br>
+    <input id="password" type="password" placeholder="Enter Password"><br>
+    <button onclick="login()">Login</button>
   </div>
-<!-- Firebase libraries -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
 
-<!-- Your config -->
-<script src="firebase-config.js"></script>
+  <!-- Firebase libraries -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
 
-<!-- Your logic -->
-<script src="auth.js"></script>
+  <!-- Your config -->
+  <script src="firebase-config.js"></script>
 
-  
+  <!-- Your logic -->
+  <script src="auth.js"></script>
+
 </body>
 </html>
-
-
