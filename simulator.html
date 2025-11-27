@@ -12,216 +12,45 @@
     --bg1: #eaf4ff;
     --bg2: #ffffff;
   }
-  body {
-    margin: 0;
-    font-family: "SF Pro Display", Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  body { margin:0; font-family: "SF Pro Display", Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     background: linear-gradient(135deg, var(--bg1), var(--bg2));
-    color: #111827;
-    display: flex;
-    justify-content: center;
-    padding: 36px;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .card {
-    width: 95%;
-    max-width: 1200px;
-    background: var(--glass);
-    backdrop-filter: blur(18px);
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(8,12,20,0.08);
-    padding: 22px;
-  }
-
-  header {
-    display:flex;
-    gap: 18px;
-    align-items:center;
-    justify-content: space-between;
-    margin-bottom: 18px;
-  }
-
-  .left {
-    display:flex;
-    gap:16px;
-    align-items:center;
-  }
-
-  h1 {
-    font-size: 20px;
-    margin: 0;
-    font-weight: 600;
-  }
-
-  .clock {
-    font-size: 18px;
-    font-weight: 600;
-    color: #0f172a;
-  }
-
-  .controls {
-    display:flex;
-    gap:10px;
-    align-items:center;
-  }
-
-  select, .btn, .toggle {
-    border: none;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 14px;
-    cursor: pointer;
-    background: white;
-    box-shadow: 0 6px 14px rgba(2,6,23,0.06);
-  }
-
-  .btn.ghost {
-    background: rgba(255,255,255,0.25);
-  }
-
-  .panel {
-    display:flex;
-    gap:18px;
-    align-items:center;
-    margin-bottom: 18px;
-  }
-
-  .next {
-    flex: 1;
-    display:flex;
-    gap:12px;
-    align-items:center;
-  }
-
-  .countdown {
-    background: white;
-    padding: 16px;
-    border-radius: 12px;
-    min-width: 220px;
-    box-shadow: 0 6px 18px rgba(2,6,23,0.06);
-  }
-
-  .countdown .time {
-    font-size: 28px;
-    font-weight: 700;
-    color: #0b1220;
-  }
-
-  .countdown .label {
-    color: var(--muted);
-    font-size: 13px;
-  }
-
-  .timeline {
-    width: 100%;
-    margin-top: 8px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: rgba(255,255,255,0.6);
-    padding: 12px;
-    box-shadow: 0 6px 18px rgba(2,6,23,0.04);
-  }
-
-  table {
-    width:100%;
-    border-collapse: collapse;
-    min-width: 900px;
-  }
-
-  th, td {
-    text-align: left;
-    padding: 10px 12px;
-    font-size: 14px;
-    vertical-align: middle;
-  }
-
-  thead th {
-    color: #374151;
-    font-weight: 600;
-    font-size: 13px;
-    opacity: .95;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid rgba(2,6,23,0.04);
-    transition: background .18s ease;
-  }
-
-  tbody tr.current {
-    background: linear-gradient(90deg, rgba(0,122,255,0.06), rgba(0,122,255,0.03));
-  }
-
-  tbody tr.next {
-    background: linear-gradient(90deg, rgba(0,122,255,0.03), rgba(0,122,255,0.01));
-  }
-
-  .slot-time {
-    font-weight: 700;
-    min-width: 160px;
-  }
-
-  .subject {
-    font-weight: 600;
-    color: #0f172a;
-  }
-
-  .room {
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .flash {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,122,255,0.08);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity .25s ease;
-  }
-
-  footer {
-    margin-top: 14px;
-    color: var(--muted);
-    font-size: 13px;
-    display:flex;
-    justify-content:space-between;
-  }
-
-  .small {
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .switch {
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-  }
-
+    color:#111827; display:flex; justify-content:center; padding:36px; -webkit-font-smoothing:antialiased; }
+  .card { width:95%; max-width:1200px; background:var(--glass); backdrop-filter: blur(18px);
+    border-radius:16px; box-shadow: 0 10px 30px rgba(8,12,20,0.08); padding:22px; }
+  header { display:flex; gap:18px; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .left { display:flex; gap:16px; align-items:center; }
+  h1 { font-size:20px; margin:0; font-weight:600; }
+  .clock { font-size:18px; font-weight:600; color:#0f172a; }
+  .controls { display:flex; gap:10px; align-items:center; }
+  select, .btn, .toggle, .small-select { border:none; padding:10px 14px; border-radius:12px; font-size:14px; cursor:pointer; background:white; box-shadow: 0 6px 14px rgba(2,6,23,0.06); }
+  .btn.ghost { background: rgba(255,255,255,0.25); }
+  .panel { display:flex; gap:18px; align-items:center; margin-bottom:18px; flex-wrap:wrap; }
+  .next { flex:1; display:flex; gap:12px; align-items:center; }
+  .countdown { background:white; padding:16px; border-radius:12px; min-width:220px; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
+  .countdown .time { font-size:28px; font-weight:700; color:#0b1220; }
+  .countdown .label { color:var(--muted); font-size:13px; }
+  .timeline { width:100%; margin-top:8px; border-radius:12px; overflow:hidden; background: rgba(255,255,255,0.6); padding:12px; box-shadow:0 6px 18px rgba(2,6,23,0.04); }
+  table { width:100%; border-collapse:collapse; min-width:900px; }
+  th, td { text-align:left; padding:10px 12px; font-size:14px; vertical-align:middle; }
+  thead th { color:#374151; font-weight:600; font-size:13px; opacity:.95; }
+  tbody tr { border-bottom:1px solid rgba(2,6,23,0.04); transition: background .18s ease; }
+  tbody tr.current { background: linear-gradient(90deg, rgba(0,122,255,0.06), rgba(0,122,255,0.03)); }
+  tbody tr.next { background: linear-gradient(90deg, rgba(0,122,255,0.03), rgba(0,122,255,0.01)); }
+  .slot-time { font-weight:700; min-width:160px; }
+  .subject { font-weight:600; color:#0f172a; }
+  .room { font-size:13px; color:var(--muted); }
+  .flash { position: fixed; inset: 0; background: rgba(0,122,255,0.08); pointer-events:none; opacity:0; transition: opacity .25s ease; }
+  footer { margin-top:14px; color:var(--muted); font-size:13px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .small { font-size:13px; color:var(--muted); }
+  .switch { display:inline-flex; align-items:center; gap:8px; }
   .toggle input { display:none; }
-  .toggle .track {
-    width:42px;
-    height:24px;
-    background: #e6eefc;
-    border-radius: 999px;
-    display:inline-block;
-    position:relative;
-  }
-  .toggle .thumb {
-    width:18px;height:18px;border-radius:50%;
-    background:white; position:absolute; top:3px; left:3px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    transition: left .18s ease, background .18s ease;
-  }
+  .toggle .track { width:42px; height:24px; background:#e6eefc; border-radius:999px; display:inline-block; position:relative; }
+  .toggle .thumb { width:18px;height:18px;border-radius:50%; background:white; position:absolute; top:3px; left:3px; box-shadow:0 4px 10px rgba(0,0,0,0.08); transition:left .18s ease, background .18s ease; }
   .toggle.on .track { background: #007aff33; }
-  .toggle.on .thumb { left:21px; background: #007aff; }
-
-  @media (max-width: 880px) {
-    .card { padding: 14px; }
-    table { min-width: 700px; font-size: 13px;}
-    .countdown { min-width: 160px; }
-    .slot-time { min-width: 120px;}
-  }
+  .toggle.on .thumb { left:21px; background:#007aff; }
+  .controls .small-select { padding:8px 10px; font-size:13px; }
+  .enable-btn { background: linear-gradient(90deg,#10b981,#06b6d4); color:white; padding:10px 14px; border-radius:12px; font-weight:600; }
+  @media (max-width:880px) { .card { padding:14px } table{ min-width:700px; font-size:13px } .countdown{ min-width:160px } .slot-time{ min-width:120px } }
 </style>
 </head>
 <body>
@@ -231,7 +60,7 @@
     <div class="left">
       <div>
         <h1>Digital Bell Simulator</h1>
-        <div class="small">Automatic bell based on timetable — beautiful timeline UI</div>
+        <div class="small">Automatic bell based on timetable — now with start/end bells, single-ring guard & pre-warnings</div>
       </div>
     </div>
 
@@ -251,23 +80,22 @@
       <button class="btn ghost" id="refreshBtn" title="Reload timetable">Refresh</button>
 
       <div class="switch" title="Auto bell">
-        <div id="autoToggle" class="toggle on" style="user-select:none;">
-          <div class="track"></div>
-          <div class="thumb"></div>
-        </div>
+        <div id="autoToggle" class="toggle on" style="user-select:none;"><div class="track"></div><div class="thumb"></div></div>
         <div class="small">Auto</div>
       </div>
 
-      <div class="switch" title="Sound on/off" style="margin-left:8px;">
-        <div id="soundToggle" class="toggle on" style="user-select:none;">
-          <div class="track"></div>
-          <div class="thumb"></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="switch" title="Sound on/off" style="margin-left:8px;">
+          <div id="soundToggle" class="toggle on" style="user-select:none;"><div class="track"></div><div class="thumb"></div></div>
+          <div class="small">Sound</div>
         </div>
-        <div class="small">Sound</div>
+
+        <!-- Enable button: user gesture for sound & notifications -->
+        <button id="enableBtn" class="enable-btn" title="Enable sound & notifications">Enable Sound & Notifications</button>
       </div>
     </div>
 
-    <div class="next">
+    <div style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap;">
       <div class="countdown" id="countdownCard">
         <div class="label">Next Bell</div>
         <div class="time" id="nextLabel">—</div>
@@ -275,7 +103,16 @@
       </div>
 
       <div style="flex:1">
-        <div class="small">Status: <span id="status">Idle</span></div>
+        <div class="small">Status: <span id="status">Idle</span> • Last rung: <span id="lastRung">Never</span></div>
+        <div style="margin-top:8px;">
+          <label class="small">Pre-warning (minutes)</label>
+          <select id="preWarn" class="small-select" title="Pre-warning minutes (applies to start/end)">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="5">5</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -283,10 +120,7 @@
   <div class="timeline">
     <table aria-label="Today's timetable">
       <thead>
-        <tr>
-          <th>Time</th>
-          <th>Classes</th>
-        </tr>
+        <tr><th>Time</th><th>Today (subject • room)</th><th></th><th></th><th></th><th></th></tr>
       </thead>
       <tbody id="timelineBody">
         <tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Loading timetable…</td></tr>
@@ -295,8 +129,8 @@
   </div>
 
   <footer>
-    <div class="small">Bell tone: synthesized • Notifications enabled</div>
-    <div class="small">Pro tip: keep simulator open for automatic ringing</div>
+    <div class="small">Bell tone: synthesized • Notifications (requires permission & HTTPS)</div>
+    <div class="small">Tip: press "Enable Sound & Notifications" once to allow audio on mobile/desktop</div>
   </footer>
 </div>
 
@@ -309,7 +143,7 @@
 
 <script>
 (() => {
-  // Config
+  // elements
   const db = firebase.database();
   const timelineBody = document.getElementById('timelineBody');
   const nextLabel = document.getElementById('nextLabel');
@@ -319,74 +153,88 @@
   const statusEl = document.getElementById('status');
   const batchSelect = document.getElementById('batchSelect');
   const refreshBtn = document.getElementById('refreshBtn');
-  const countdownCard = document.getElementById('countdownCard');
   const flashEl = document.getElementById('flash');
   const autoToggle = document.getElementById('autoToggle');
   const soundToggle = document.getElementById('soundToggle');
+  const enableBtn = document.getElementById('enableBtn');
+  const lastRungEl = document.getElementById('lastRung');
+  const preWarnSelect = document.getElementById('preWarn');
 
-  let scheduleRows = []; // rows from firebase/defaults
-  let todayRows = [];    // only today's rows with parsed end timestamps
-  let lastRung = 0;     // timestamp ms of last ring to prevent duplicates
+  let scheduleRows = [];
+  let todayRows = [];
   let autoOn = true;
   let soundOn = true;
-  let ringGuardSeconds = 50; // do not ring again within this many seconds
+  let audioCtx = null;
+  let lastRungTimestamps = new Set(); // store rung times (ms rounded to sec)
+  let ringGuardSeconds = 40; // minimum gap to avoid duplicate ringing for same timestamp
+  let pendingNotificationsAllowed = false;
 
-  // Live clock
+  // clock
   function tickClock() {
     const now = new Date();
     clockEl.textContent = now.toLocaleTimeString();
     weekdayEl.textContent = now.toLocaleDateString(undefined, { weekday: 'long' });
   }
-  setInterval(tickClock, 1000);
-  tickClock();
+  setInterval(tickClock, 1000); tickClock();
 
-  function parseEndTime(timeStr) {
-    if (!timeStr) return null;
+  // Parsing helpers: return Date object (today) for start and end
+  function parseTimes(timeStr) {
+    // expects strings like "8:00 am - 9:00 am" or "12:45 pm  - 13:45 pm" or "08:00 - 09:00"
+    if (!timeStr) return { start: null, end: null };
     const regex = /(\d{1,2}:\d{2})\s*(am|pm|AM|PM)?/g;
     const matches = [...timeStr.matchAll(regex)];
-    if (matches.length === 0) return null;
-    const last = matches[matches.length - 1];
-    let hhmm = last[1];
-    let mer = last[2] ? last[2].toLowerCase() : null;
-    let parts = hhmm.split(':').map(s => parseInt(s,10));
-    let hour = parts[0], minute = parts[1];
-    if (!mer) {
-      const firstMer = matches[0][2] ? matches[0][2].toLowerCase() : null;
-      if (firstMer) mer = firstMer;
-    }
-    if (mer) {
-      if (mer === 'pm' && hour < 12) hour += 12;
-      if (mer === 'am' && hour === 12) hour = 0;
-    }
-    const now = new Date();
-    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0, 0);
-    return end.getTime();
+    if (matches.length === 0) return { start: null, end: null };
+    const toDate = (hhmm, mer) => {
+      const parts = hhmm.split(':').map(s => parseInt(s,10));
+      let h = parts[0], m = parts[1];
+      if (mer) mer = mer.toLowerCase();
+      if (mer) {
+        if (mer === 'pm' && h < 12) h += 12;
+        if (mer === 'am' && h === 12) h = 0;
+      } else {
+        // if no meridian, try infer from first match if available later
+      }
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+    };
+
+    // first and last match:
+    const first = matches[0];
+    const last = matches[matches.length-1];
+    const firstMer = first[2] ? first[2].toLowerCase() : null;
+    const lastMer = last[2] ? last[2].toLowerCase() : null;
+
+    const start = toDate(first[1], firstMer || lastMer); // if only last has meridian, use it
+    const end = toDate(last[1], lastMer || firstMer);
+    return { start: start.getTime(), end: end.getTime() };
   }
 
+  // Build today's rows including startTs and endTs
   function buildTodayRows(rows) {
-    const now = Date.now();
     const dayName = new Date().toLocaleDateString(undefined, { weekday: 'long' });
     const result = [];
     rows.forEach((r, idx) => {
       const cell = r[dayName] || { subject: "N/A", room: "N/A" };
-      const endTs = parseEndTime(r.time);
+      const { start, end } = parseTimes(r.time || '');
       result.push({
         index: idx,
         time: r.time || 'N/A',
         subject: cell.subject || 'N/A',
         room: cell.room || 'N/A',
-        endTs: endTs
+        startTs: start || null,
+        endTs: end || null
       });
     });
+    // sort by startTs/endTs where available (fallback to original order)
     result.sort((a,b) => {
-      if (a.endTs && b.endTs) return a.endTs - b.endTs;
-      if (a.endTs && !b.endTs) return -1;
-      if (!a.endTs && b.endTs) return 1;
-      return 0;
+      const ta = a.startTs || a.endTs || Number.MAX_SAFE_INTEGER;
+      const tb = b.startTs || b.endTs || Number.MAX_SAFE_INTEGER;
+      return ta - tb;
     });
     return result;
   }
 
+  // Render timeline (simple single-column "today" view)
   function renderTimeline(rows) {
     if (!rows || rows.length === 0) {
       timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">No timetable rows found</td></tr>';
@@ -394,10 +242,10 @@
     }
     const now = Date.now();
     let html = '';
-    rows.forEach((r, i) => {
-      const cls = (r.endTs && now <= r.endTs && (i===0 || now < r.endTs && now >= (rows[i-1] && rows[i-1].endTs || -1))) ? 'current' : '';
-      const next = (r.endTs && r.endTs > now) && !rows.find(rr => rr.endTs && rr.endTs > now && rr.endTs < r.endTs) ? 'next' : '';
-      html += `<tr class="${cls} ${next}">
+    rows.forEach((r,i) => {
+      const active = (r.startTs && r.endTs) ? (now >= r.startTs && now <= r.endTs) : false;
+      const nextFlag = r.startTs && r.startTs > now && !rows.find(rr => rr.startTs && rr.startTs > now && rr.startTs < r.startTs);
+      html += `<tr class="${active ? 'current' : (nextFlag ? 'next' : '')}">
         <td class="slot-time">${escapeHtml(r.time)}</td>
         <td><div class="subject">${escapeHtml(r.subject)}</div><div class="room">${escapeHtml(r.room)}</div></td>
         <td colspan="4"></td>
@@ -406,143 +254,223 @@
     timelineBody.innerHTML = html;
   }
 
-  function escapeHtml(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+  function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  function findNextBell(rows) {
+  // Find next event timestamp (start or end) after now
+  function findNextEvent(rows) {
     const now = Date.now();
-    const candidates = rows.filter(r => r.endTs && r.endTs > now);
-    if (!candidates || candidates.length === 0) return null;
-    candidates.sort((a,b) => a.endTs - b.endTs);
-    return candidates[0];
+    // gather all event timestamps (startTs and endTs) that are > now - except nulls
+    const events = [];
+    rows.forEach(r => {
+      if (r.startTs) events.push({type:'start', ts:r.startTs, row:r});
+      if (r.endTs) events.push({type:'end', ts:r.endTs, row:r});
+    });
+    const future = events.filter(e => e.ts && e.ts > now);
+    if (!future.length) return null;
+    future.sort((a,b) => a.ts - b.ts);
+    return future[0];
   }
 
+  // Single bell sound using AudioContext; short, pleasant chime
   function playBellSound() {
     if (!soundOn) return;
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = audioCtx;
       const now = ctx.currentTime;
-      const freqs = [880, 660, 440];
-      freqs.forEach((f, i) => {
+      const freqs = [880, 660, 520];
+      freqs.forEach((f,i) => {
         const o = ctx.createOscillator();
         const g = ctx.createGain();
         o.type = 'sine';
         o.frequency.setValueAtTime(f, now + i*0.02);
         g.gain.setValueAtTime(0, now);
         g.gain.linearRampToValueAtTime(0.12/(i+1), now + 0.01 + i*0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, now + 1.6 + i*0.15);
-        o.connect(g);
-        g.connect(ctx.destination);
-        o.start(now + i*0.02);
-        o.stop(now + 2.0 + i*0.15);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 1.6 + i*0.12);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(now + i*0.02); o.stop(now + 1.5 + i*0.12);
       });
-    } catch (e) {
-      const audio = new Audio();
-      audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=';
+    } catch(e) {
+      // fallback: use silent audio data URI to avoid exceptions
+      const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=');
       audio.play().catch(()=>{});
     }
   }
 
-  function flash() {
+  // visual flash & vibration
+  function flashOnce() {
     flashEl.style.opacity = '1';
     setTimeout(()=> flashEl.style.opacity = '0', 300);
+    if (navigator.vibrate) navigator.vibrate([200,75,150]);
   }
 
-  function notify(title, body) {
+  // Unified notify wrapper
+  function sendNotification(title, body) {
     if (!("Notification" in window)) return;
     if (Notification.permission === "granted") {
-      new Notification(title, { body });
-    } else if (Notification.permission !== "denied") {
-      Notification.requestPermission().then(p => {
-        if (p === "granted") new Notification(title, { body });
-      });
+      try { new Notification(title, { body }); } catch(e){}
     }
   }
 
-  function checkAndRing() {
+  // ring once for given timestamp (ms) and message; ensure single ring per second
+  function ringForTimestamp(ts, message) {
+    const key = Math.floor(ts / 1000); // second-precision key
+    if (lastRungTimestamps.has(key)) return false;
+    // guard: also avoid rings that are too close to previous rings
+    const now = Date.now();
+    // if there is any timestamp in set within ringGuardSeconds seconds of now, skip duplicates
+    // but this is only used to avoid immediate double rings
+    for (let k of lastRungTimestamps) {
+      if (Math.abs(k*1000 - now) < (ringGuardSeconds * 1000)) {
+        // allow but do not block if same key not present (we still ensure key uniqueness)
+        // continue;
+      }
+    }
+    // perform ring
+    playBellSound();
+    flashOnce();
+    sendNotification('Bell', message);
+    lastRungTimestamps.add(key);
+    // remove old keys after some time (cleanup)
+    setTimeout(()=> lastRungTimestamps.delete(key), (ringGuardSeconds+5)*1000);
+    lastRungEl.textContent = new Date().toLocaleTimeString();
+    return true;
+  }
+
+  // check events every second and ring appropriately
+  function checkEvents() {
     if (!autoOn) return;
     const now = Date.now();
-    const next = findNextBell(todayRows);
-    if (!next) {
-      nextLabel.textContent = '—';
-      nextSub.textContent = 'No more bells today';
-      statusEl.textContent = 'Idle';
-      renderTimeline(todayRows);
-      return;
-    }
-    const nextDate = new Date(next.endTs);
-    const diffMs = next.endTs - now;
-    nextLabel.textContent = timeStringFromMs(diffMs);
-    nextSub.textContent = `${next.time} • ${next.subject} (${next.room})`;
-    statusEl.textContent = 'Waiting';
-    renderTimeline(todayRows);
-    if (now >= next.endTs - 500 && (now - lastRung) > (ringGuardSeconds * 1000)) {
-      lastRung = now;
-      statusEl.textContent = 'Ringing';
-      playBellSound();
-      flash();
-      notify('Bell — Period ended', `${next.time} • ${next.subject} • ${batchSelect.value}`);
-      setTimeout(() => {
+    const preMinutes = parseInt(preWarnSelect.value, 10) || 0;
+    const preMs = preMinutes * 60 * 1000;
+
+    // Collect unique timestamps (in ms) that should trigger now (including pre-warnings)
+    const toRingMap = new Map(); // key: timestamp (ms), value: message (string)
+    todayRows.forEach(r => {
+      ['startTs','endTs'].forEach(typeKey => {
+        const ts = r[typeKey];
+        if (!ts) return;
+        // two triggers: pre-warning (ts - preMs) and exact ts; pre-warning only if preMs>0
+        const preTs = ts - preMs;
+        // if pre-warning time has arrived (within 1s window)
+        if (preMs > 0 && now >= preTs - 700 && now <= preTs + 900) {
+          // message: pre-warning
+          const label = (typeKey === 'startTs') ? 'Class starting soon' : 'Class ending soon';
+          const msg = `${label}: ${r.time} • ${r.subject} (${r.room})`;
+          toRingMap.set(Math.floor(preTs), msg);
+        }
+        // exact event time (within 1s)
+        if (now >= ts - 700 && now <= ts + 900) {
+          const label = (typeKey === 'startTs') ? 'Class started' : 'Class ended';
+          const msg = `${label}: ${r.time} • ${r.subject} (${r.room})`;
+          toRingMap.set(Math.floor(ts), msg);
+        }
+      });
+    });
+
+    // If multiple rows map to the same timestamp, we'll only ring once per unique timestamp
+    if (toRingMap.size === 0) {
+      // update nextLabel/nextSub
+      const nextEvent = findNextEvent(todayRows);
+      if (nextEvent) {
+        const diff = nextEvent.ts - now;
+        nextLabel.textContent = msToHHMMSS(diff);
+        nextSub.textContent = `${nextEvent.type.toUpperCase()} — ${nextEvent.row.time} • ${nextEvent.row.subject}`;
         statusEl.textContent = 'Waiting';
-        loadTimetable(batchSelect.value);
-      }, 1000);
+      } else {
+        nextLabel.textContent = '—';
+        nextSub.textContent = 'No more bells today';
+        statusEl.textContent = 'Idle';
+      }
+    } else {
+      // process each unique timestamp once
+      for (let [keyMs, msg] of toRingMap.entries()) {
+        const tsNum = Number(keyMs);
+        const did = ringForTimestamp(tsNum*1, msg);
+        if (did) {
+          statusEl.textContent = 'Ringing';
+          // quick UI update then continue
+          setTimeout(()=> statusEl.textContent = 'Waiting', 1200);
+        }
+      }
+      // refresh timetable in case an edit occurred
+      setTimeout(()=> loadTimetable(batchSelect.value), 500);
     }
+    renderTimeline(todayRows);
   }
 
-  function timeStringFromMs(ms) {
-    if (ms <= 0) return "00:00:00";
+  function msToHHMMSS(ms) {
+    if (!ms || ms <= 0) return "00:00:00";
     const s = Math.floor(ms/1000);
-    const hh = Math.floor(s/3600);
-    const mm = Math.floor((s%3600)/60);
-    const ss = s%60;
+    const hh = Math.floor(s/3600), mm = Math.floor((s%3600)/60), ss = s%60;
     return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
   }
 
-  function loadTimetable(batchKey = 'Batch1') {
+  // load timetable from firebase for a batch
+  function loadTimetable(batchKey='Batch1') {
     timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Loading timetable…</td></tr>';
     db.ref('timetables/' + batchKey).once('value').then(snap=>{
       if (!snap.exists()) {
-        timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Timetable not found in Firebase (save one from edit page)</td></tr>';
-        scheduleRows = [];
-        todayRows = [];
-        return;
+        timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Timetable not found in Firebase — save one from edit page</td></tr>';
+        scheduleRows = []; todayRows = []; return;
       }
       scheduleRows = snap.val();
       todayRows = buildTodayRows(scheduleRows);
       renderTimeline(todayRows);
     }).catch(err=>{
       timelineBody.innerHTML = `<tr><td colspan="6" style="padding:18px;text-align:center;color:#b91c1c">Load error: ${escapeHtml(err.message)}</td></tr>`;
-      scheduleRows = [];
-      todayRows = [];
+      scheduleRows = []; todayRows = [];
     });
   }
 
+  // UI wiring
   refreshBtn.addEventListener('click', ()=> loadTimetable(batchSelect.value));
   batchSelect.addEventListener('change', ()=> loadTimetable(batchSelect.value));
+  autoToggle.addEventListener('click', ()=> { autoOn = !autoOn; autoToggle.classList.toggle('on', autoOn); });
+  soundToggle.addEventListener('click', ()=> { soundOn = !soundOn; soundToggle.classList.toggle('on', soundOn); });
 
-  autoToggle.addEventListener('click', ()=>{
-    autoOn = !autoOn;
-    autoToggle.classList.toggle('on', autoOn);
+  // enable button: must be clicked by user to allow audio autoplay & request notifications
+  enableBtn.addEventListener('click', async () => {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // resume if suspended (mobile browsers require user gesture)
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      // create a tiny sound to ensure audio unlocked
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.frequency.value = 220; g.gain.value = 0.0001;
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + 0.05);
+    } catch(e) { /* ignore */ }
+
+    // request notifications
+    if ("Notification" in window) {
+      const p = await Notification.requestPermission();
+      pendingNotificationsAllowed = (p === 'granted');
+    }
+    // enable sound flag
+    soundOn = true; soundToggle.classList.add('on');
+    enableBtn.textContent = 'Enabled';
+    setTimeout(()=> enableBtn.textContent = 'Enabled ✓', 800);
   });
 
-  soundToggle.addEventListener('click', ()=>{
-    soundOn = !soundOn;
-    soundToggle.classList.toggle('on', soundOn);
-  });
-
-  if (("Notification" in window) && Notification.permission !== "granted") {
-    Notification.requestPermission().catch(()=>{});
-  }
-
+  // initial load
   loadTimetable(batchSelect.value);
-
-  // ✅ Updated interval to sync day properly
+  // recalc todayRows at midnight etc every 10s to be safe
   setInterval(()=> {
     todayRows = buildTodayRows(scheduleRows);
-    checkAndRing();
-  }, 1000);
+  }, 10000);
 
+  // main check every second
+  setInterval(checkEvents, 1000);
+
+  // request notification permission proactively (non-blocking)
+  if ("Notification" in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+    // don't prompt immediately — user should press enable button; but a gentle request here will not produce popup in most browsers
+  }
+
+  // expose for debug (optional)
+  window._simulator = { loadTimetable, buildTodayRows, todayRows };
 })();
 </script>
 </body>
