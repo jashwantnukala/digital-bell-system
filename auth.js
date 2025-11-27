@@ -17,7 +17,7 @@ function login() {
 
             // YOUR ADMIN UID (Teacher)
             const adminUID = "lPvZ7WGuTVP1LcYvKjGYtOj1GBD3";
-
+const adminUID = "VJzxtAxnP9Q9QrG62PUbPkshbMc2";
             // Teacher login
             if (chosenRole === "teacher") {
                 if (user.uid === adminUID) {
