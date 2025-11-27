@@ -7,18 +7,22 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+      background: #f7f7f7; /* OFF-WHITE BACKGROUND */
       color: #1a1a1a;
       margin: 0;
       text-align: center;
     }
+
     header {
       padding: 40px 0 20px;
     }
+
     h1 {
       font-size: 2.2rem;
       margin-bottom: 10px;
     }
+
+    /* Standard Buttons */
     button, a {
       display: inline-block;
       text-decoration: none;
@@ -33,21 +37,25 @@
       cursor: pointer;
       font-size: 1rem;
     }
+
     button:hover, a:hover {
       background-color: #005fa3;
     }
 
-    /* 🔔 Special Styling for Bell Simulator Button */
+    /* 🔔 Bell Simulator Special Button */
     .bell-btn {
-      background: #ffce54;
-      color: #4a3d00;
-      padding: 18px 32px;
+      background: #ffcc00;
+      color: #1a1a1a;
       font-size: 1.1rem;
+      padding: 18px 32px;
       border-radius: 50px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      font-weight: 600;
+      margin-top: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      transition: 0.3s;
     }
     .bell-btn:hover {
-      background: #ffb400;
+      background: #e6b800;
       transform: translateY(-2px);
     }
 
@@ -56,6 +64,7 @@
       padding: 20px;
       display: none;
     }
+
     input {
       padding: 10px;
       width: 250px;
@@ -72,7 +81,7 @@
     <p>Manage and View Class Timetables Securely</p>
   </header>
 
-  <!-- 🔔 NEW BELL SIMULATOR BUTTON (BEFORE SELECT ROLE) -->
+  <!-- 🔔 Bell Simulator Button (NEW + Centered + Premium Style) -->
   <button class="bell-btn" onclick="window.location.href='simulator.html'">
     🔔 Open Digital Bell Simulator
   </button>
@@ -100,12 +109,10 @@
   <script src="firebase-config.js"></script>
 
   <script>
-    // SHOW LOGIN BOX FOR TEACHER
     function selectTeacher() {
       document.getElementById('login-box').style.display = 'block';
     }
 
-    // LOGIN FUNCTION (Teacher only)
     function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
