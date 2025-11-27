@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta-name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Smart Bell System</title>
 
   <style>
@@ -17,6 +17,7 @@
     header {
       padding: 40px 0 20px;
     }
+
     h1 {
       font-size: 2.2rem;
       margin-bottom: 10px;
@@ -36,13 +37,13 @@
       cursor: pointer;
       font-size: 1rem;
     }
+
     button:hover, a:hover {
       background-color: #005fa3;
     }
 
     /* SPECIAL SIMULATOR BUTTON */
     .sim-btn {
-      margin-top: 40px;
       background: linear-gradient(135deg, #ff8a00, #e52e71);
       padding: 18px 40px;
       font-size: 1.2rem;
@@ -50,7 +51,9 @@
       border-radius: 50px;
       color: white;
       box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      transition: 0.1s;
     }
+
     .sim-btn:hover {
       transform: scale(1.05);
       background: linear-gradient(135deg, #ff9c33, #ff3b8d);
@@ -61,6 +64,7 @@
       padding: 20px;
       display: none;
     }
+
     input {
       padding: 10px;
       width: 250px;
@@ -86,17 +90,17 @@
   <!-- TEACHER BUTTON — show login -->
   <button onclick="selectTeacher()">I am a Teacher</button>
 
+  <!-- DIGITAL BELL SIMULATOR BUTTON (NOW BELOW THE TWO ABOVE) -->
+  <button class="sim-btn" onclick="window.location.href='simulator.html'">
+    Open Digital Bell Simulator
+  </button>
+
   <div id="login-box">
     <h3>Login</h3>
     <input id="email" type="email" placeholder="Enter Email"><br>
     <input id="password" type="password" placeholder="Enter Password"><br>
     <button onclick="login()">Login</button>
   </div>
-
-  <!-- ⭐ DIGITAL BELL SIMULATOR BUTTON (CENTERED) -->
-  <button class="sim-btn" onclick="window.location.href='simulator.html'">
-    🎵 Open Digital Bell Simulator
-  </button>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
