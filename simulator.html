@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Digital Bell Simulator</title>
+<style>
+  :root {
+    --glass: rgba(255,255,255,0.6);
+    --accent: #007aff;
+    --muted: #6b7280;
+    --bg1: #eaf4ff;
+    --bg2: #ffffff;
+  }
+  body {
+    margin: 0;
+    font-family: "SF Pro Display", Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color: #111827;
+    display: flex;
+    justify-content: center;
+    padding: 36px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .card {
+    width: 95%;
+    max-width: 1200px;
+    background: var(--glass);
+    backdrop-filter: blur(18px);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(8,12,20,0.08);
+    padding: 22px;
+  }
+
+  header {
+    display:flex;
+    gap: 18px;
+    align-items:center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .left {
+    display:flex;
+    gap:16px;
+    align-items:center;
+  }
+
+  h1 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .clock {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .controls {
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+
+  select, .btn, .toggle {
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    background: white;
+    box-shadow: 0 6px 14px rgba(2,6,23,0.06);
+  }
+
+  .btn.ghost {
+    background: rgba(255,255,255,0.25);
+  }
+
+  .panel {
+    display:flex;
+    gap:18px;
+    align-items:center;
+    margin-bottom: 18px;
+  }
+
+  .next {
+    flex: 1;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+
+  .countdown {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    min-width: 220px;
+    box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+  }
+
+  .countdown .time {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0b1220;
+  }
+
+  .countdown .label {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .timeline {
+    width: 100%;
+    margin-top: 8px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.6);
+    padding: 12px;
+    box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+  }
+
+  table {
+    width:100%;
+    border-collapse: collapse;
+    min-width: 900px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  thead th {
+    color: #374151;
+    font-weight: 600;
+    font-size: 13px;
+    opacity: .95;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(2,6,23,0.04);
+    transition: background .18s ease;
+  }
+
+  tbody tr.current {
+    background: linear-gradient(90deg, rgba(0,122,255,0.06), rgba(0,122,255,0.03));
+  }
+
+  tbody tr.next {
+    background: linear-gradient(90deg, rgba(0,122,255,0.03), rgba(0,122,255,0.01));
+  }
+
+  .slot-time {
+    font-weight: 700;
+    min-width: 160px;
+  }
+
+  .subject {
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .room {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,122,255,0.08);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .25s ease;
+  }
+
+  footer {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 13px;
+    display:flex;
+    justify-content:space-between;
+  }
+
+  .small {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .switch {
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .toggle input { display:none; }
+  .toggle .track {
+    width:42px;
+    height:24px;
+    background: #e6eefc;
+    border-radius: 999px;
+    display:inline-block;
+    position:relative;
+  }
+  .toggle .thumb {
+    width:18px;height:18px;border-radius:50%;
+    background:white; position:absolute; top:3px; left:3px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: left .18s ease, background .18s ease;
+  }
+  .toggle.on .track { background: #007aff33; }
+  .toggle.on .thumb { left:21px; background: #007aff; }
+
+  @media (max-width: 880px) {
+    .card { padding: 14px; }
+    table { min-width: 700px; font-size: 13px;}
+    .countdown { min-width: 160px; }
+    .slot-time { min-width: 120px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <header>
+    <div class="left">
+      <div>
+        <h1>Digital Bell Simulator</h1>
+        <div class="small">Automatic bell based on timetable — beautiful timeline UI</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:14px;align-items:center;">
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="small">Today: <span id="weekday">—</span></div>
+    </div>
+  </header>
+
+  <div class="panel">
+    <div class="controls">
+      <select id="batchSelect" title="Choose Batch">
+        <option value="Batch1">Batch 1</option>
+        <option value="Batch2">Batch 2</option>
+      </select>
+
+      <button class="btn ghost" id="refreshBtn" title="Reload timetable">Refresh</button>
+
+      <div class="switch" title="Auto bell">
+        <div id="autoToggle" class="toggle on" style="user-select:none;">
+          <div class="track"></div>
+          <div class="thumb"></div>
+        </div>
+        <div class="small">Auto</div>
+      </div>
+
+      <div class="switch" title="Sound on/off" style="margin-left:8px;">
+        <div id="soundToggle" class="toggle on" style="user-select:none;">
+          <div class="track"></div>
+          <div class="thumb"></div>
+        </div>
+        <div class="small">Sound</div>
+      </div>
+    </div>
+
+    <div class="next">
+      <div class="countdown" id="countdownCard">
+        <div class="label">Next Bell</div>
+        <div class="time" id="nextLabel">—</div>
+        <div class="small" id="nextSub">—</div>
+      </div>
+
+      <div style="flex:1">
+        <div class="small">Status: <span id="status">Idle</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline">
+    <table aria-label="Today's timetable">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Monday</th>
+          <th>Tuesday</th>
+          <th>Wednesday</th>
+          <th>Thursday</th>
+          <th>Friday</th>
+        </tr>
+      </thead>
+      <tbody id="timelineBody">
+        <tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Loading timetable…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <div class="small">Bell tone: synthesized • Notifications enabled</div>
+    <div class="small">Pro tip: keep simulator open for automatic ringing</div>
+  </footer>
+</div>
+
+<div class="flash" id="flash"></div>
+
+<!-- Firebase v8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+(() => {
+  // Config
+  const db = firebase.database();
+  const timelineBody = document.getElementById('timelineBody');
+  const nextLabel = document.getElementById('nextLabel');
+  const nextSub = document.getElementById('nextSub');
+  const weekdayEl = document.getElementById('weekday');
+  const clockEl = document.getElementById('clock');
+  const statusEl = document.getElementById('status');
+  const batchSelect = document.getElementById('batchSelect');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const countdownCard = document.getElementById('countdownCard');
+  const flashEl = document.getElementById('flash');
+  const autoToggle = document.getElementById('autoToggle');
+  const soundToggle = document.getElementById('soundToggle');
+
+  let scheduleRows = []; // rows from firebase/defaults
+  let todayRows = [];    // only today's rows with parsed end timestamps
+  let lastRung = 0;     // timestamp ms of last ring to prevent duplicates
+  let autoOn = true;
+  let soundOn = true;
+  let ringGuardSeconds = 50; // do not ring again within this many seconds
+
+  // Live clock
+  function tickClock() {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString();
+    weekdayEl.textContent = now.toLocaleDateString(undefined, { weekday: 'long' });
+  }
+  setInterval(tickClock, 1000);
+  tickClock();
+
+  // parse a row's time and return end timestamp in ms (today)
+  function parseEndTime(timeStr) {
+    if (!timeStr) return null;
+    // Find the last time (end) in the string e.g. "8:00 am - 9:00 am" or "12:45 pm  - 13:45 pm"
+    // regex find all hh:mm with optional am/pm
+    const regex = /(\d{1,2}:\d{2})\s*(am|pm|AM|PM)?/g;
+    const matches = [...timeStr.matchAll(regex)];
+    if (matches.length === 0) return null;
+    const last = matches[matches.length - 1];
+    let hhmm = last[1];
+    let mer = last[2] ? last[2].toLowerCase() : null;
+
+    // If meridian missing but string's hour looks > 12 assume 24hr
+    let parts = hhmm.split(':').map(s => parseInt(s,10));
+    let hour = parts[0], minute = parts[1];
+
+    if (!mer) {
+      // try detect from the first time's meridian
+      const firstMer = matches[0][2] ? matches[0][2].toLowerCase() : null;
+      if (firstMer) mer = firstMer;
+    }
+
+    // convert to 24h hour
+    if (mer) {
+      if (mer === 'pm' && hour < 12) hour += 12;
+      if (mer === 'am' && hour === 12) hour = 0;
+    }
+
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0, 0);
+    return end.getTime();
+  }
+
+  // build today's rows for a chosen batch
+  function buildTodayRows(rows) {
+    const now = Date.now();
+    const dayName = new Date().toLocaleDateString(undefined, { weekday: 'long' }); // "Monday"
+    const result = [];
+
+    rows.forEach((r, idx) => {
+      // r.time plus r[dayName] object with subject & room
+      const cell = r[dayName] || { subject: "N/A", room: "N/A" };
+      const endTs = parseEndTime(r.time);
+
+      // if unable to parse end time, skip scheduling bell for it but still show in timeline
+      result.push({
+        index: idx,
+        time: r.time || 'N/A',
+        subject: cell.subject || 'N/A',
+        room: cell.room || 'N/A',
+        endTs: endTs // may be null
+      });
+    });
+
+    // sort by parsed end time where possible; keep original order for nulls
+    result.sort((a,b) => {
+      if (a.endTs && b.endTs) return a.endTs - b.endTs;
+      if (a.endTs && !b.endTs) return -1;
+      if (!a.endTs && b.endTs) return 1;
+      return 0;
+    });
+
+    return result;
+  }
+
+  // Render timeline table
+  function renderTimeline(rows) {
+    if (!rows || rows.length === 0) {
+      timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">No timetable rows found</td></tr>';
+      return;
+    }
+    const now = Date.now();
+    let html = '';
+    rows.forEach((r, i) => {
+      const cls = (r.endTs && now <= r.endTs && (i===0 || now < r.endTs && now >= (rows[i-1] && rows[i-1].endTs || -1))) ? 'current' : '';
+      // find next (first with endTs > now)
+      const next = (r.endTs && r.endTs > now) && !rows.find(rr => rr.endTs && rr.endTs > now && rr.endTs < r.endTs) ? 'next' : '';
+      // better: mark current as row where now <= endTs and (prev.endTs < now or prev missing)
+      html += `<tr class="${cls} ${next}">
+        <td class="slot-time">${escapeHtml(r.time)}</td>
+        <td><div class="subject">${escapeHtml(r.subject)}</div><div class="room">${escapeHtml(r.room)}</div></td>
+        <td colspan="4"></td>
+      </tr>`;
+    });
+    timelineBody.innerHTML = html;
+  }
+
+  // escape helper
+  function escapeHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // find next bell (first endTs > now)
+  function findNextBell(rows) {
+    const now = Date.now();
+    const candidates = rows.filter(r => r.endTs && r.endTs > now);
+    if (!candidates || candidates.length === 0) return null;
+    candidates.sort((a,b) => a.endTs - b.endTs);
+    return candidates[0];
+  }
+
+  // bell sound using WebAudio (synth bell)
+  function playBellSound() {
+    if (!soundOn) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = ctx.currentTime;
+      const freqs = [880, 660, 440];
+      freqs.forEach((f, i) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, now + i*0.02);
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(0.12/(i+1), now + 0.01 + i*0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 1.6 + i*0.15);
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start(now + i*0.02);
+        o.stop(now + 2.0 + i*0.15);
+      });
+    } catch (e) {
+      // fallback beep
+      const audio = new Audio();
+      audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA='; // tiny silent
+      audio.play().catch(()=>{});
+    }
+  }
+
+  // visual flash
+  function flash() {
+    flashEl.style.opacity = '1';
+    setTimeout(()=> flashEl.style.opacity = '0', 300);
+  }
+
+  // browser notification
+  function notify(title, body) {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+      new Notification(title, { body });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(p => {
+        if (p === "granted") new Notification(title, { body });
+      });
+    }
+  }
+
+  // main tick: check next bell and ring when time passes
+  function checkAndRing() {
+    if (!autoOn) return;
+    const now = Date.now();
+    const next = findNextBell(todayRows);
+    if (!next) {
+      nextLabel.textContent = '—';
+      nextSub.textContent = 'No more bells today';
+      statusEl.textContent = 'Idle';
+      renderTimeline(todayRows);
+      return;
+    }
+
+    // show next info
+    const nextDate = new Date(next.endTs);
+    const diffMs = next.endTs - now;
+    nextLabel.textContent = timeStringFromMs(diffMs);
+    nextSub.textContent = `${next.time} • ${next.subject} (${next.room})`;
+    statusEl.textContent = 'Waiting';
+
+    renderTimeline(todayRows);
+
+    // if we are at or past the next end time and not rung recently, ring
+    if (now >= next.endTs - 500 && (now - lastRung) > (ringGuardSeconds * 1000)) {
+      lastRung = now;
+      // ring
+      statusEl.textContent = 'Ringing';
+      playBellSound();
+      flash();
+      notify('Bell — Period ended', `${next.time} • ${next.subject} • ${batchSelect.value}`);
+      // after ring, update timeline & find subsequent bell
+      setTimeout(() => {
+        statusEl.textContent = 'Waiting';
+        // refresh todays rows in case edit.html saved new data
+        loadTimetable(batchSelect.value);
+      }, 1000);
+    }
+  }
+
+  // helper to format countdown
+  function timeStringFromMs(ms) {
+    if (ms <= 0) return "00:00:00";
+    const s = Math.floor(ms/1000);
+    const hh = Math.floor(s/3600);
+    const mm = Math.floor((s%3600)/60);
+    const ss = s%60;
+    return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  }
+
+  // load timetable for given batch
+  function loadTimetable(batchKey = 'Batch1') {
+    timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Loading timetable…</td></tr>';
+    db.ref('timetables/' + batchKey).once('value').then(snap=>{
+      if (!snap.exists()) {
+        // fallback - ask user to use edit page / show message
+        timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Timetable not found in Firebase (save one from edit page)</td></tr>';
+        scheduleRows = [];
+        todayRows = [];
+        return;
+      }
+      scheduleRows = snap.val();
+      todayRows = buildTodayRows(scheduleRows);
+      renderTimeline(todayRows);
+    }).catch(err=>{
+      timelineBody.innerHTML = `<tr><td colspan="6" style="padding:18px;text-align:center;color:#b91c1c">Load error: ${escapeHtml(err.message)}</td></tr>`;
+      scheduleRows = [];
+      todayRows = [];
+    });
+  }
+
+  // UI wiring
+  refreshBtn.addEventListener('click', ()=> loadTimetable(batchSelect.value));
+  batchSelect.addEventListener('change', ()=> loadTimetable(batchSelect.value));
+
+  autoToggle.addEventListener('click', ()=>{
+    autoOn = !autoOn;
+    autoToggle.classList.toggle('on', autoOn);
+  });
+
+  soundToggle.addEventListener('click', ()=>{
+    soundOn = !soundOn;
+    soundToggle.classList.toggle('on', soundOn);
+  });
+
+  // request notification permission early
+  if (("Notification" in window) && Notification.permission !== "granted") {
+    Notification.requestPermission().catch(()=>{});
+  }
+
+  // initial load
+  loadTimetable(batchSelect.value);
+
+  // periodic check every second
+  setInterval(()=> {
+    // recalc todayRows times in case day changed at midnight
+    checkAndRing();
+    // also update countdown label every second
+  }, 1000);
+
+})();
+</script>
+</body>
+</html>
