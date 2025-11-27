@@ -53,6 +53,7 @@ firebase.auth().onAuthStateChanged((user) => {
     // If logged in → still block unauthorized access
     else {
         const adminUID = "lPvZ7WGuTVP1LcYvKjGYtOj1GBD3";
+        const adminUID = "VJzxtAxnP9Q9QrG62PUbPkshbMc2";
 
         // Prevent anyone except teacher from opening edit.html
         if (path.includes("edit.html") && user.uid !== adminUID) {
