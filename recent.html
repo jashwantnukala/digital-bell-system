@@ -1,155 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Recent Changes</title>
+    <meta charset="UTF-8">
+    <title>Recent Changes</title>
 
-<style>
-    body {
-        font-family: "Inter", Arial, sans-serif;
-        background: #ffffff;
-        margin: 0;
-        padding: 40px 0;
-        display: flex;
-        justify-content: center;
-    }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
 
-    .container {
-        width: 92%;
-        max-width: 900px;
-        background: #fff;
-        padding: 30px;
-        border-radius: 14px;
-        border: 1px solid #000;
-    }
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 40px 0;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 14px;
+            border: 1px solid #000;
+        }
 
-    h2 {
-        text-align: center;
-        font-size: 32px;
-        margin-bottom: 20px;
-        font-weight: 700;
-        color: #000;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+        h2 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #000;
+        }
 
-    /* Table */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-        border: 1px solid black;
-    }
+        #searchBox {
+            width: 97%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #000;
+            font-size: 15px;
+        }
 
-    th {
-        background: #000;
-        color: white;
-        font-weight: 600;
-        padding: 12px;
-        font-size: 14px;
-        border: 1px solid black;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
 
-    td {
-        padding: 12px;
-        border: 1px solid #000;
-        font-size: 14px;
-        text-align: center;
-        color: #111;
-    }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #000;
+        }
 
-    tr:nth-child(even) {
-        background: #f5f5f5;
-    }
+        th {
+            background: #000;
+            color: #fff;
+            font-weight: bold;
+        }
 
-    .timestamp {
-        font-size: 13px;
-        color: #333;
-    }
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
 
-    .loading {
-        text-align: center;
-        padding: 20px;
-        color: #777;
-        font-size: 16px;
-    }
-</style>
-
+        .timestamp {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+        }
+    </style>
 </head>
-
 <body>
 
 <div class="container">
     <h2>Recent Timetable Changes</h2>
 
-    <table>
+    <input type="text" id="searchBox" placeholder="🔍 Search teacher, batch, day, period or action…">
+
+    <table id="changesTable">
         <thead>
-            <tr>
-                <th>Date & Time</th>
-                <th>Teacher</th>
-                <th>Batch</th>
-                <th>Day</th>
-                <th>Period</th>
-                <th>Action</th>
-            </tr>
+        <tr>
+            <th>Date & Time</th>
+            <th>Teacher</th>
+            <th>Batch</th>
+            <th>Day</th>
+            <th>Period</th>
+            <th>Action</th>
+        </tr>
         </thead>
+
         <tbody id="changesBody">
-            <tr><td colspan="6" class="loading">Loading...</td></tr>
+            <tr><td colspan="6">Loading...</td></tr>
         </tbody>
     </table>
 </div>
 
-
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="firebase-config.js"></script>
 
 <script>
-/* SAFER VALUE CLEANER */
-function safe(x) {
-    return (x === undefined || x === null || x === "") ? "N/A" : x;
+function safe(v) {
+    return (v === null || v === undefined || v === "") ? "N/A" : v;
 }
 
-/* 🔥 LOAD ALL RECENT CHANGES */
+let allChanges = [];
+
 function loadRecentChanges() {
     const tbody = document.getElementById("changesBody");
-    tbody.innerHTML = `<tr><td colspan="6" class="loading">Loading...</td></tr>`;
+    tbody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
 
     firebase.database().ref("recentChanges")
-    .orderByChild("timestamp")
-    .limitToLast(120)
-    .once("value")
-    .then(snap => {
-        tbody.innerHTML = "";
+        .orderByChild("timestamp")
+        .limitToLast(200)
+        .on("value", (snapshot) => {  // LIVE UPDATES
+            tbody.innerHTML = "";
 
-        if (!snap.exists()) {
-            tbody.innerHTML = `<tr><td colspan="6">No recent changes found.</td></tr>`;
-            return;
-        }
+            if (!snapshot.exists()) {
+                tbody.innerHTML = "<tr><td colspan='6'>No updates found.</td></tr>";
+                return;
+            }
 
-        const entries = Object.values(snap.val()).reverse();
-
-        entries.forEach(item => {
-            const date = safe(item.timestamp ? new Date(item.timestamp).toLocaleString() : "N/A");
-
-            tbody.innerHTML += `
-                <tr>
-                    <td class="timestamp">${date}</td>
-                    <td>${safe(item.teacher)}</td>
-                    <td>${safe(item.batch)}</td>
-                    <td>${safe(item.day)}</td>
-                    <td>${safe(item.period)}</td>
-                    <td>${safe(item.action)}</td>
-                </tr>
-            `;
+            allChanges = Object.values(snapshot.val()).reverse();
+            renderTable(allChanges);
         });
-    })
-    .catch(() => {
-        tbody.innerHTML = `<tr><td colspan="6">Error loading updates.</td></tr>`;
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById("changesBody");
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='6'>No matches found.</td></tr>";
+        return;
+    }
+
+    data.forEach(entry => {
+        const date = entry.timestamp
+            ? new Date(entry.timestamp).toLocaleString()
+            : "N/A";
+
+        tbody.innerHTML += `
+            <tr>
+                <td class="timestamp">${safe(date)}</td>
+                <td>${safe(entry.teacher)}</td>
+                <td>${safe(entry.batch)}</td>
+                <td>${safe(entry.day)}</td>
+                <td>${safe(entry.period)}</td>
+                <td>${safe(entry.action)}</td>
+            </tr>
+        `;
     });
 }
+
+document.getElementById("searchBox").addEventListener("input", function () {
+    const text = this.value.toLowerCase();
+    const filtered = allChanges.filter(ch =>
+        JSON.stringify(ch).toLowerCase().includes(text)
+    );
+    renderTable(filtered);
+});
 
 loadRecentChanges();
 </script>
