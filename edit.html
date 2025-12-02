@@ -117,261 +117,47 @@
   <div id="message"></div>
 
   <a href="index-teacher.html">⬅️ Back to Home</a>
-<script>
-firebase.auth().onAuthStateChanged(user => {
-    if (!user) {
-        // Not logged in → Kick them out
-        alert("Access denied. Please log in as a teacher.");
-        window.location.href = "index.html";
-        return;
-    }
 
-    // If you want extra security: allow only specific teacher emails
-    const allowedTeachers = [
-        "jashwantnukala2025.comp@mmcoe.edu.in",
-        "teacher2@school.com"
-    ];
-
-    if (!allowedTeachers.includes(user.email)) {
-        alert("Unauthorized access. Only teachers can edit the timetable.");
-        firebase.auth().signOut();
-        window.location.href = "index.html";
-    }
-});
-</script>
-
-  <!-- Firebase -->
+  <!-- Firebase FIRST (important) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+  <!-- Your config -->
   <script src="firebase-config.js"></script>
   <script src="auth.js"></script>
 
+  <!-- 🔐 AUTH PROTECTION (now placed correctly) -->
+  <script>
+  firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+          alert("Access denied. Please log in as a teacher.");
+          window.location.href = "index.html";
+          return;
+      }
+
+      const allowedTeachers = [
+          "jashwantnukala2025.comp@mmcoe.edu.in",
+          "teacher2@school.com"
+      ];
+
+      if (!allowedTeachers.includes(user.email)) {
+          alert("Unauthorized access! Students cannot edit timetable.");
+          firebase.auth().signOut();
+          window.location.href = "index.html";
+      }
+  });
+  </script>
+
+  <!-- MAIN TIMETABLE SCRIPT -->
   <script>
     (function () {
       const db = firebase.database();
-
-      const defaults = {
-        Batch1: [
-          {
-            "time": "8:00 am - 9:00 am",
-            "Monday": { "subject": "Extra class", "room": "AC 502" },
-            "Tuesday": { "subject": "M-I", "room": "AC 404" },
-            "Wednesday": { "subject": "Extra class", "room": "AC 404" },
-            "Thursday": { "subject": "M-I - Tut: A,B / M-I - Tut: C", "room": "MB207B / MB605" },
-            "Friday": { "subject": "CS:A / CS:B,C", "room": "MB 604 / AC 404, AC 501" }
-          },
-          {
-            "time": "9:00 am- 10:00 am",
-            "Monday": { "subject": "YM", "room": "Ground Floor" },
-            "Tuesday": { "subject": "GM", "room": "AC 404" },
-            "Wednesday": { "subject": "M-I", "room": "AC 404" },
-            "Thursday": { "subject": "GM-Tut : A,B / GM -Tut : C", "room": "MB207B / MB605" },
-            "Friday": { "subject": "CS:A / CS:B,C", "room": "MB 604 / AC 404, AC 501" }
-          },
-          {
-            "time": "10:00 am - 10:30 am",
-            "Monday": { "subject": "SHORT BREAK", "room": "N/A" },
-            "Tuesday": { "subject": "SHORT BREAK", "room": "N/A" },
-            "Wednesday": { "subject": "SHORT BREAK", "room": "N/A" },
-            "Thursday": { "subject": "SHORT BREAK", "room": "N/A" },
-            "Friday": { "subject": "SHORT BREAK", "room": "N/A" }
-          },
-          {
-            "time": "10:30 am - 11:30 am",
-            "Monday": { "subject": "M-I", "room": "AC 404" },
-            "Tuesday": { "subject": "AC", "room": "AC 404" },
-            "Wednesday": { "subject": "FAI", "room": "AC 404" },
-            "Thursday": { "subject": "AC : C / EEL 1: A,B", "room": "MB 604/611 / MB 301, MB 306" },
-            "Friday": { "subject": "BXT", "room": "AC 404" }
-          },
-          {
-            "time": "11:30 am - 12:30 pm",
-            "Monday": { "subject": "GM", "room": "AC 404" },
-            "Tuesday": { "subject": "FAI", "room": "AC 404" },
-            "Wednesday": { "subject": "AC", "room": "AC 404" },
-            "Thursday": { "subject": "AC : C / EEL 1: A,B", "room": "MB 604/611 / MB 301, MB 306" },
-            "Friday": { "subject": "AC", "room": "AC 404" }
-          },
-          {
-            "time": "12:30 pm- 13:15 pm",
-            "Monday": { "subject": "LONG BREAK", "room": "N/A" },
-            "Tuesday": { "subject": "LONG BREAK", "room": "N/A" },
-            "Wednesday": { "subject": "LONG BREAK", "room": "N/A" },
-            "Thursday": { "subject": "LONG BREAK", "room": "N/A" },
-            "Friday": { "subject": "LONG BREAK", "room": "N/A" }
-          },
-          {
-            "time": "13:15 pm - 14:15 pm",
-            "Monday": { "subject": "BXT", "room": "N/A" },
-            "Tuesday": { "subject": "N/A", "room": "N/A" },
-            "Wednesday": { "subject": "BXT Tut", "room": "MB 207B / MB 301" },
-            "Thursday": { "subject": "AC : A / EEL 1: B", "room": "MB 604/611 / MB 301, MB 306" },
-            "Friday": { "subject": "AC : B / EEL 1: A,C", "room": "MB 604/611 / MB 301, MB 306" }
-          },
-          {
-            "time": "14:15 pm - 15:15 pm",
-            "Monday": { "subject": "FAI Tut", "room": "MB 614" },
-            "Tuesday": { "subject": "N/A", "room": "N/A" },
-            "Wednesday": { "subject": "N/A", "room": "N/A" },
-            "Thursday": { "subject": "AC : A / EEL 1: B", "room": "MB 604/611 / MB 301, MB 306" },
-            "Friday": { "subject": "AC : B / EEL 1: A,C", "room": "MB 604/611 / MB 301, MB 306" }
-          }
-        ],
-
-        Batch2: [
-          {
-            "time": "10:00 am- 11:00 am",
-            "Monday": { "subject": "Extra class", "room": "AC 402" },
-            "Tuesday": { "subject": "N/A", "room": "N/A" },
-            "Wednesday": { "subject": "N/A", "room": "N/A" },
-            "Thursday": { "subject": "AP:A / EEL-1:B,C", "room": "MB 601/MB 605 / MB 207B" },
-            "Friday": { "subject": "AP", "room": "AC 504" }
-          },
-          {
-            "time": "11:00 am  - 12:00 pm",
-            "Monday": { "subject": "Extra class", "room": "AC 402" },
-            "Tuesday": { "subject": "N/A", "room": "N/A" },
-            "Wednesday": { "subject": "N/A", "room": "N/A" },
-            "Thursday": { "subject": "AP:A / EEL-1:B,C", "room": "MB 601/MB 605 / MB 207B" },
-            "Friday": { "subject": "M-I", "room": "AC 504" }
-          },
-          {
-            "time": "12:00 pm  - 12:45 pm",
-            "Monday": { "subject": "LONG BREAK", "room": "N/A" },
-            "Tuesday": { "subject": "LONG BREAK", "room": "N/A" },
-            "Wednesday": { "subject": "LONG BREAK", "room": "N/A" },
-            "Thursday": { "subject": "LONG BREAK", "room": "N/A" },
-            "Friday": { "subject": "LONG BREAK", "room": "N/A" }
-          },
-          {
-            "time": "12:45 pm  - 13:45 pm",
-            "Monday": { "subject": "EG Tut", "room": "MB 207A" },
-            "Tuesday": { "subject": "ICC", "room": "AC 503" },
-            "Wednesday": { "subject": "EG", "room": "AC 503" },
-            "Thursday": { "subject": "AP: A,B / EEL-1: A,B", "room": "MB 601/MB 605 / MB 207B" },
-            "Friday": { "subject": "AP:B / EEL-1:A,C", "room": "MB 601/MB 605 / MB 207B" }
-          },
-          {
-            "time": "13:45 pm  - 14:45 pm",
-            "Monday": { "subject": "FPL Tut", "room": "MB 207A" },
-            "Tuesday": { "subject": "FPL", "room": "AC 503" },
-            "Wednesday": { "subject": "EG", "room": "AC 503" },
-            "Thursday": { "subject": "AP: A,B / EEL-1: A,B", "room": "MB 601/MB 605 / MB 207B" },
-            "Friday": { "subject": "AP:B / EEL-1:A,C", "room": "MB 601/MB 605 / MB 207B" }
-          },
-          {
-            "time": "14:45 pm - 15:15 pm",
-            "Monday": { "subject": "SHORT BREAK", "room": "N/A" },
-            "Tuesday": { "subject": "SHORT BREAK", "room": "N/A" },
-            "Wednesday": { "subject": "SHORT BREAK", "room": "N/A" },
-            "Thursday": { "subject": "SHORT BREAK", "room": "N/A" },
-            "Friday": { "subject": "SHORT BREAK", "room": "N/A" }
-          },
-          {
-            "time": "15:15 pm - 16:15 pm",
-            "Monday": { "subject": "PA", "room": "Ground Floor" },
-            "Tuesday": { "subject": "BET", "room": "AC 503" },
-            "Wednesday": { "subject": "AP", "room": "AC 503" },
-            "Thursday": { "subject": "FPL", "room": "AC 503" },
-            "Friday": { "subject": "BET", "room": "AC 503" }
-          },
-          {
-            "time": "16:15 pm -  17:15 pm",
-            "Monday": { "subject": "MI Tut", "room": "MB 207A" },
-            "Tuesday": { "subject": "AP", "room": "AC 503" },
-            "Wednesday": { "subject": "M-I", "room": "AC 503" },
-            "Thursday": { "subject": "M-I", "room": "AC 503" },
-            "Friday": { "subject": "BET Tut", "room": "MB 207A" }
-          }
-        ]
-      };
-
-      let currentBatch = "";
       const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+      let currentBatch = "";
+
       const tableEl = document.getElementById("timetableTable");
       const messageEl = document.getElementById("message");
-
-      function renderGrid(rows) {
-        let html = "<thead><tr><th>Time</th>";
-        days.forEach(d => { html += `<th>${d}</th>`; });
-        html += "</tr></thead><tbody>";
-
-        rows.forEach((r, rowIdx) => {
-          const timeEsc = escapeHtml(r.time || "N/A");
-
-          html += `<tr data-row="${rowIdx}">
-            <td><input class="cell-time" data-row="${rowIdx}" value="${timeEsc}" placeholder="Time"></td>
-          `;
-
-          days.forEach(d => {
-            const cell = r[d] || {subject:"N/A", room:"N/A"};
-            const subjEsc = escapeHtml(cell.subject || "N/A");
-            const roomEsc = escapeHtml(cell.room || "N/A");
-
-            html += `
-              <td>
-                <input class="cell-subj" data-day="${d}" data-row="${rowIdx}" value="${subjEsc}" placeholder="Subject">
-                <input class="cell-room" data-day="${d}" data-row="${rowIdx}" value="${roomEsc}" placeholder="Room (or N/A)">
-              </td>
-            `;
-          });
-
-          html += "</tr>";
-        });
-
-        html += "</tbody>";
-        tableEl.innerHTML = html;
-      }
-
-      function loadBatch(batchKey) {
-        currentBatch = batchKey;
-        messageEl.textContent = "";
-
-        db.ref('timetables/' + batchKey).once('value')
-          .then(snapshot => {
-            if (snapshot.exists()) renderGrid(snapshot.val());
-            else renderGrid(defaults[batchKey]);
-          })
-          .catch(err => alert('Failed to load timetable: ' + err.message));
-      }
-
-      function saveCurrentGrid() {
-        if (!currentBatch) return alert("Please select a batch first!");
-
-        const rows = [];
-        const tbody = tableEl.querySelector('tbody');
-        const trList = Array.from(tbody.querySelectorAll('tr'));
-
-        trList.forEach(tr => {
-          const rowIdx = tr.getAttribute('data-row');
-
-          const timeInput = tr.querySelector(`.cell-time[data-row="${rowIdx}"]`);
-          const timeVal = timeInput.value.trim() || "N/A";
-
-          const rowObj = { time: timeVal };
-
-          days.forEach(d => {
-            const subjInput = tr.querySelector(`.cell-subj[data-day="${d}"][data-row="${rowIdx}"]`);
-            const roomInput = tr.querySelector(`.cell-room[data-day="${d}"][data-row="${rowIdx}"]`);
-
-            const subj = subjInput.value.trim() || "N/A";
-            const room = roomInput.value.trim() || "N/A";
-
-            rowObj[d] = { subject: subj, room: room };
-          });
-
-          rows.push(rowObj);
-        });
-
-        db.ref('timetables/' + currentBatch).set(rows)
-          .then(() => {
-            messageEl.textContent = "✅ Timetable Saved!";
-            setTimeout(() => messageEl.textContent = "", 2000);
-          })
-          .catch(err => alert('Save failed: ' + err.message));
-      }
 
       function escapeHtml(s) {
         return String(s)
@@ -382,15 +168,71 @@ firebase.auth().onAuthStateChanged(user => {
           .replace(/>/g,'&gt;');
       }
 
+      function renderGrid(rows) {
+        let html = "<thead><tr><th>Time</th>";
+        days.forEach(d => { html += `<th>${d}</th>`; });
+        html += "</tr></thead><tbody>";
+
+        rows.forEach((r, rowIdx) => {
+          html += `<tr data-row="${rowIdx}">`;
+          html += `<td><input class="cell-time" value="${escapeHtml(r.time)}"></td>`;
+
+          days.forEach(d => {
+            const cell = r[d] || {subject:"N/A", room:"N/A"};
+            html += `
+              <td>
+                <input class="cell-subj" value="${escapeHtml(cell.subject)}">
+                <input class="cell-room" value="${escapeHtml(cell.room)}">
+              </td>`;
+          });
+
+          html += "</tr>";
+        });
+
+        html += "</tbody>";
+        tableEl.innerHTML = html;
+      }
+
+      function loadBatch(batch) {
+        currentBatch = batch;
+        messageEl.textContent = "";
+
+        db.ref("timetables/" + batch).once("value").then(snap => {
+          if (snap.exists()) renderGrid(snap.val());
+          else alert("No timetable found!");
+        });
+      }
+
+      function save() {
+        if (!currentBatch) return alert("Select a batch first!");
+
+        const rows = [];
+        const trs = tableEl.querySelectorAll("tbody tr");
+
+        trs.forEach(tr => {
+          const time = tr.querySelector(".cell-time").value || "N/A";
+          const rowObj = { time };
+
+          days.forEach((d, i) => {
+            const subj = tr.querySelectorAll(".cell-subj")[i].value || "N/A";
+            const room = tr.querySelectorAll(".cell-room")[i].value || "N/A";
+            rowObj[d] = { subject: subj, room: room };
+          });
+
+          rows.push(rowObj);
+        });
+
+        db.ref("timetables/" + currentBatch).set(rows).then(() => {
+          messageEl.textContent = "✅ Saved!";
+          setTimeout(() => messageEl.textContent = "", 2000);
+        });
+      }
+
       document.getElementById("batch1Btn").onclick = () => loadBatch("Batch1");
       document.getElementById("batch2Btn").onclick = () => loadBatch("Batch2");
-      document.getElementById("saveBtn").onclick = saveCurrentGrid;
+      document.getElementById("saveBtn").onclick = save;
     })();
   </script>
 
 </body>
 </html>
-
-
-
-
