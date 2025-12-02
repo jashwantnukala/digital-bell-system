@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,12 +32,13 @@
   </style>
 </head>
 <body>
+
   <div class="nav">
     <h1>📣 Announcements — Manage</h1>
     <button id="signOutBtn">Sign out</button>
   </div>
 
-  <div class="card" id="postCard">
+  <div class="card">
     <div style="font-weight:600; margin-bottom:10px;">Post New Announcement</div>
     <div class="form-row">
       <input id="title" placeholder="Title (short)" />
@@ -52,20 +52,19 @@
     </div>
   </div>
 
-  <div class="card list" id="listCard" style="margin-top:16px;">
+  <div class="card list" style="margin-top:16px;">
     <div style="font-weight:600; margin-bottom:12px;">All Announcements</div>
     <div id="annList">Loading...</div>
   </div>
 
   <a class="home" href="index-teacher.html">← Back to Home</a>
 
-  <!-- Firebase v8 CDN -->
+  <!-- Firebase v8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <script>
-    // Your Firebase config (copied from your snippet but using v8 CDN)
     const firebaseConfig = {
       apiKey: "AIzaSyB3Lv_9EiVBVy5aXwiYOn0pgZu31ykFOGM",
       authDomain: "digitalbellplisworkthistime.firebaseapp.com",
@@ -77,142 +76,130 @@
       measurementId: "G-W0PYZY1R1M"
     };
     firebase.initializeApp(firebaseConfig);
+
     const db = firebase.database();
     const auth = firebase.auth();
 
     const adminUID = "lPvZ7WGuTVP1LcYvKjGYtOj1GBD3";
 
-    // ---- Auth guard: allow only logged-in teacher (adminUID) ----
     auth.onAuthStateChanged(user => {
-      if (!user) {
-        // not logged in — send to login (index)
+      if (!user || user.uid !== adminUID) {
+        alert("Access denied.");
         window.location.href = "index.html";
         return;
       }
-      if (user.uid !== adminUID) {
-        alert("Access denied: Teacher only.");
-        window.location.href = "index.html";
-        return;
-      }
-      // OK — teacher allowed; load announcements
-      loadAnnouncements();
     });
 
-    document.getElementById('signOutBtn').onclick = () => auth.signOut().then(()=>window.location.href='index.html');
+    document.getElementById("signOutBtn").onclick = () =>
+      auth.signOut().then(() => (window.location.href = "index.html"));
 
-    // ---- Post announcement ----
-    document.getElementById('postBtn').onclick = () => {
-      const title = document.getElementById('title').value.trim();
-      const message = document.getElementById('message').value.trim();
-      if (!title || !message) { alert('Please fill title and message'); return; }
+    // ---------------------
+    // POST ANNOUNCEMENT
+    // ---------------------
+    document.getElementById("postBtn").onclick = () => {
+      const title = titleInput.value.trim();
+      const message = msgInput.value.trim();
+      
+      if (!title || !message) return alert("Please fill all fields.");
 
       const payload = {
-        title, message,
+        title,
+        message,
         timestamp: Date.now(),
-        postedBy: (auth.currentUser && auth.currentUser.displayName) ? auth.currentUser.displayName : auth.currentUser.email
+        postedBy: auth.currentUser.email
       };
 
-      const newRef = db.ref('announcements').push();
-      newRef.set(payload).then(()=> {
-        // log to recentChanges
-        db.ref('recentChanges').push({
-          timestamp: Date.now(),
-          teacher: payload.postedBy,
-          batch: 'All',
-          day: '',
-          period: '',
-          action: `Posted announcement: ${title}`
-        });
-        document.getElementById('title').value = '';
-        document.getElementById('message').value = '';
-      }).catch(err => alert('Save failed: ' + err.message));
+      db.ref("announcements").push(payload);
+
+      titleInput.value = "";
+      msgInput.value = "";
     };
 
-    document.getElementById('clearBtn').onclick = () => {
-      document.getElementById('title').value = '';
-      document.getElementById('message').value = '';
+    const titleInput = document.getElementById("title");
+    const msgInput = document.getElementById("message");
+
+    document.getElementById("clearBtn").onclick = () => {
+      titleInput.value = "";
+      msgInput.value = "";
     };
 
-    // ---- Load announcements and render list ----
-    function loadAnnouncements() {
-      const container = document.getElementById('annList');
-      container.innerHTML = 'Loading...';
+    // ---------------------
+    // RENDER ANNOUNCEMENTS
+    // ---------------------
+    function renderAnnouncements(snapshot) {
+      const container = document.getElementById("annList");
+      container.innerHTML = "";
 
-      db.ref('announcements').orderByChild('timestamp').once('value', snap => {
-        container.innerHTML = '';
-        if (!snap.exists()) { container.innerHTML = '<div style="color:#666">No announcements yet.</div>'; return; }
+      if (!snapshot.exists()) {
+        container.innerHTML = "<div style='color:#666'>No announcements.</div>";
+        return;
+      }
 
-        // entries newest first
-        const entries = [];
-        snap.forEach(s => entries.push({ id: s.key, ...s.val() }));
-        entries.reverse();
+      const entries = [];
+      snapshot.forEach(s => entries.push({ id: s.key, ...s.val() }));
+      entries.reverse();
 
-        entries.forEach(e => {
-          const date = new Date(e.timestamp || Date.now()).toLocaleString();
-          const postedBy = e.postedBy || 'Teacher';
-          const html = document.createElement('div');
-          html.className = 'ann';
-          html.innerHTML = `
-            <div class="ann-details">
-              <h3>${escapeHtml(e.title)}</h3>
-              <p>${escapeHtml(e.message)}</p>
-              <div class="meta">Posted by ${escapeHtml(postedBy)} • ${date}</div>
-            </div>
-            <div class="ann-actions">
-              <button class="small edit" onclick="editAnnouncement('${e.id}')">Edit</button>
-              <button class="small delete" onclick="deleteAnnouncement('${e.id}','${escapeJs(e.title)}')">Delete</button>
-            </div>
-          `;
-          container.appendChild(html);
-        });
-      });
+      entries.forEach(e => {
+        const date = new Date(e.timestamp).toLocaleString();
+        const div = document.createElement("div");
+        div.className = "ann";
 
-      // attach live listener to refresh automatically
-      db.ref('announcements').orderByChild('timestamp').on('value', () => {
-        // re-render list on any change
-        loadAnnouncements();
+        div.innerHTML = `
+          <div class="ann-details">
+            <h3>${escapeHtml(e.title)}</h3>
+            <p>${escapeHtml(e.message)}</p>
+            <div class="meta">Posted by ${e.postedBy} • ${date}</div>
+          </div>
+          <div class="ann-actions">
+            <button class="small edit" onclick="editAnnouncement('${e.id}')">Edit</button>
+            <button class="small delete" onclick="deleteAnnouncement('${e.id}','${escapeJs(e.title)}')">Delete</button>
+          </div>
+        `;
+        container.appendChild(div);
       });
     }
 
-    // ---- Delete ----
-    function deleteAnnouncement(id, titleSafe) {
-      if (!confirm('Delete announcement \"' + titleSafe + '\" ?')) return;
-      db.ref('announcements/' + id).remove().then(()=> {
-        db.ref('recentChanges').push({
-          timestamp: Date.now(),
-          teacher: (auth.currentUser && auth.currentUser.displayName) ? auth.currentUser.displayName : auth.currentUser.email,
-          batch: 'All', day:'', period:'', action: `Deleted announcement: ${titleSafe}`
-        });
-      }).catch(err => alert('Delete failed: ' + err.message));
+    // Live Updates (NO infinite recursion)
+    db.ref("announcements").orderByChild("timestamp")
+      .on("value", renderAnnouncements);
+
+    // ---------------------
+    // DELETE
+    // ---------------------
+    function deleteAnnouncement(id, safeTitle) {
+      if (!confirm(`Delete: ${safeTitle}?`)) return;
+      db.ref("announcements/" + id).remove();
     }
 
-    // ---- Edit (simple inline prompt modal) ----
+    // ---------------------
+    // EDIT
+    // ---------------------
     function editAnnouncement(id) {
-      // load entry
-      db.ref('announcements/' + id).once('value').then(snap => {
-        if (!snap.exists()) return alert('Item not found');
-        const val = snap.val();
-        const newTitle = prompt('Edit title', val.title);
-        if (newTitle === null) return; // cancelled
-        const newMessage = prompt('Edit message', val.message);
-        if (newMessage === null) return;
-        db.ref('announcements/' + id).update({
+      db.ref("announcements/" + id).once("value").then(snap => {
+        if (!snap.exists()) return;
+        const old = snap.val();
+
+        const newTitle = prompt("Edit title", old.title);
+        if (newTitle === null) return;
+
+        const newMsg = prompt("Edit message", old.message);
+        if (newMsg === null) return;
+
+        db.ref("announcements/" + id).update({
           title: newTitle,
-          message: newMessage,
+          message: newMsg,
           editedAt: Date.now()
-        }).then(()=> {
-          db.ref('recentChanges').push({
-            timestamp: Date.now(),
-            teacher: (auth.currentUser && auth.currentUser.displayName) ? auth.currentUser.displayName : auth.currentUser.email,
-            batch:'All', day:'', period:'', action: `Edited announcement: ${newTitle}`
-          });
-        }).catch(err => alert('Update failed: ' + err.message));
+        });
       });
     }
 
-    // simple escapes
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function escapeJs(s){ return String(s||'').replace(/'/g,"\\'").replace(/\"/g,'\\\"'); }
+    function escapeHtml(s) {
+      return String(s).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    function escapeJs(s) {
+      return String(s).replace(/'/g, "\\'");
+    }
   </script>
+
 </body>
 </html>
