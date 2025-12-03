@@ -7,102 +7,181 @@
 
   <style>
     :root {
-      --accent: #007aff;
+      --accent: #2d66ff;
       --danger: #ff3b30;
-      --card: rgba(255,255,255,0.55);
+      --card: rgba(255,255,255,0.65);
       --blur: blur(22px);
-      --muted:#666;
+      --muted: #6b7280;
+      --text-dark: #1f2937;
     }
 
     body {
-      margin:0;
-      font-family:-apple-system, "Inter", sans-serif;
-      background: linear-gradient(135deg,#dce7ff,#eef3ff,#ffffff);
-      padding:28px 12px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(135deg, #dce7ff, #eef3ff, #ffffff);
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-dark);
     }
 
+    /* HEADER */
     .nav {
-      width:90%; max-width:900px;
-      display:flex; justify-content:space-between;
-      margin-bottom:18px;
+      width: 95%;
+      max-width: 950px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .nav h1 { margin:0; font-size:24px; font-weight:600; }
+    .nav h1 {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
+    /* BUTTONS */
     button {
-      cursor:pointer;
-      border:none;
-      border-radius:12px;
-      padding:10px 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-weight: 600;
+      transition: 0.2s;
     }
 
-    #signOutBtn { background:var(--danger); color:white; }
+    #signOutBtn {
+      background: var(--danger);
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+    }
+    #signOutBtn:hover {
+      filter: brightness(1.1);
+    }
 
+    /* CARD CONTAINER */
     .card {
-      width:90%; max-width:900px;
-      background:var(--card);
-      backdrop-filter:var(--blur);
-      border-radius:18px;
-      padding:20px;
-      box-shadow:0 8px 30px rgba(0,0,0,0.10);
-      margin-top:20px;
+      width: 95%;
+      max-width: 950px;
+      background: var(--card);
+      backdrop-filter: var(--blur);
+      border-radius: 20px;
+      padding: 25px;
+      margin-top: 25px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
     }
 
+    .card h2 {
+      font-size: 21px;
+      font-weight: 600;
+      margin-top: 0;
+      margin-bottom: 14px;
+    }
+
+    /* INPUTS */
     input, textarea {
-      width:100%; font-size:16px;
-      padding:12px;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,0.15);
-      margin-bottom:10px;
+      width: 100%;
+      font-size: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,0.15);
+      margin-bottom: 12px;
+      transition: 0.25s;
     }
 
-    textarea { min-height:90px; resize:vertical; }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(45,102,255,0.2);
+    }
 
-    .primary { background:var(--accent); color:white; }
+    textarea { min-height: 100px; resize: vertical; }
 
+    /* POST BUTTON */
+    .primary {
+      background: var(--accent);
+      color: white;
+      font-size: 16px;
+      padding: 12px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(45,102,255,0.3);
+      transition: 0.2s;
+    }
+    .primary:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    /* ANNOUNCEMENT BOX */
     .ann {
-      background:white;
-      padding:16px;
-      border-radius:12px;
-      box-shadow:0 6px 20px rgba(0,0,0,0.05);
-      margin-bottom:12px;
-      display:flex; justify-content:space-between; gap:12px;
+      background: white;
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 15px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      border-left: 5px solid var(--accent);
+      transition: 0.2s;
+    }
+    .ann:hover {
+      transform: translateY(-2px);
     }
 
     .small-btn {
-      padding:8px 12px;
-      border-radius:10px;
-      font-size:13px;
-      cursor:pointer;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
     }
 
-    .edit { background:#fff5c2; }
-    .delete { background:#ffd1d1; }
+    .edit { background: #fff7c2; }
+    .delete { background: #ffd1d1; }
 
-    /* Success Animation */
+    .edit:hover { filter: brightness(1.05); }
+    .delete:hover { filter: brightness(1.07); }
+
+    .meta {
+      font-size: 13px;
+      margin-top: 4px;
+      color: var(--muted);
+    }
+
+    /* SUCCESS TOAST */
     #successToast {
       position: fixed;
-      bottom: 25px;
-      right: 25px;
-      background:#007aff;
-      color:white;
-      padding:14px 18px;
-      border-radius:12px;
-      font-size:15px;
-      opacity:0;
-      transform:translateY(20px);
-      transition:0.4s ease;
-      pointer-events:none;
+      bottom: 28px;
+      right: 28px;
+      background: var(--accent);
+      color: white;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 15px;
+      opacity: 0;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      transform: translateY(20px);
+      transition: 0.4s ease;
+      pointer-events: none;
     }
-
     #successToast.show {
-      opacity:1;
-      transform:translateY(0);
+      opacity: 1;
+      transform: translateY(0);
     }
 
+    a.home {
+      margin-top: 18px;
+      text-decoration: none;
+      font-weight: 600;
+      color: var(--accent);
+      font-size: 16px;
+    }
   </style>
 </head>
 
@@ -114,16 +193,14 @@
   </div>
 
   <div class="card">
-    <h2 style="margin:0 0 10px 0;">Post New Announcement</h2>
-
+    <h2>Post New Announcement</h2>
     <input id="title" placeholder="Title">
     <textarea id="message" placeholder="Write message..."></textarea>
-
-    <button class="primary" id="postBtn">Post</button>
+    <button class="primary" id="postBtn">Post Announcement</button>
   </div>
 
   <div class="card">
-    <h2 style="margin:0 0 10px 0;">All Announcements</h2>
+    <h2>All Announcements</h2>
     <div id="annList">Loading...</div>
   </div>
 
@@ -160,34 +237,30 @@
     document.getElementById("signOutBtn").onclick =
       () => auth.signOut().then(() => location.href = "index.html");
 
-    // Toast Animation
     function showToast() {
       const t = document.getElementById("successToast");
       t.classList.add("show");
       setTimeout(() => t.classList.remove("show"), 2000);
     }
 
-    // POST
     document.getElementById("postBtn").onclick = () => {
       const t = document.getElementById("title").value.trim();
       const m = document.getElementById("message").value.trim();
 
       if (!t || !m) return alert("Fill all fields");
 
-      const payload = {
+      db.ref("announcements").push({
         title: t,
         message: m,
         timestamp: Date.now(),
         postedBy: auth.currentUser.email
-      };
+      });
 
-      db.ref("announcements").push(payload);
       showToast();
       document.getElementById("title").value = "";
       document.getElementById("message").value = "";
     };
 
-    // LOAD
     db.ref("announcements")
       .orderByChild("timestamp")
       .on("value", snap => {
@@ -224,11 +297,11 @@
       });
 
     function editAnn(id) {
-      db.ref("announcements/"+id).once("value")
-      .then(s => {
+      db.ref("announcements/"+id).once("value").then(s => {
         const v = s.val();
         const nt = prompt("Edit title:", v.title);
         if (nt === null) return;
+
         const nm = prompt("Edit message:", v.message);
         if (nm === null) return;
 
@@ -247,7 +320,7 @@
 
     function escapeHtml(t) {
       return String(t ?? "")
-        .replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
+        .replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;"," >":"&gt;" }[c]));
     }
   </script>
 
