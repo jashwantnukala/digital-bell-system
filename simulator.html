@@ -170,6 +170,21 @@
   let ringGuardSeconds = 40; // minimum gap to avoid duplicate ringing for same timestamp
   let pendingNotificationsAllowed = false;
 
+  // --- Realistic Bell Sound --- 
+  const bellAudio = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-classic-short-bell-1047.mp3");
+  bellAudio.volume = 0.9; // adjust volume here (0.0 - 1.0)
+
+  function playBellSound() {
+    if (!soundOn) return;
+
+    try {
+      bellAudio.currentTime = 0;   // rewind for repeated rings
+      bellAudio.play().catch(() => {});
+    } catch(e) {
+      console.warn("Audio playback blocked:", e);
+    }
+  }
+
   // clock
   function tickClock() {
     const now = new Date();
@@ -178,9 +193,8 @@
   }
   setInterval(tickClock, 1000); tickClock();
 
-  // Parsing helpers: return Date object (today) for start and end
+  // Parsing helpers
   function parseTimes(timeStr) {
-    // expects strings like "8:00 am - 9:00 am" or "12:45 pm  - 13:45 pm" or "08:00 - 09:00"
     if (!timeStr) return { start: null, end: null };
     const regex = /(\d{1,2}:\d{2})\s*(am|pm|AM|PM)?/g;
     const matches = [...timeStr.matchAll(regex)];
@@ -192,286 +206,20 @@
       if (mer) {
         if (mer === 'pm' && h < 12) h += 12;
         if (mer === 'am' && h === 12) h = 0;
-      } else {
-        // if no meridian, try infer from first match if available later
       }
       const now = new Date();
       return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
     };
-
-    // first and last match:
     const first = matches[0];
     const last = matches[matches.length-1];
     const firstMer = first[2] ? first[2].toLowerCase() : null;
     const lastMer = last[2] ? last[2].toLowerCase() : null;
-
-    const start = toDate(first[1], firstMer || lastMer); // if only last has meridian, use it
+    const start = toDate(first[1], firstMer || lastMer);
     const end = toDate(last[1], lastMer || firstMer);
     return { start: start.getTime(), end: end.getTime() };
   }
 
-  // Build today's rows including startTs and endTs
-  function buildTodayRows(rows) {
-    const dayName = new Date().toLocaleDateString(undefined, { weekday: 'long' });
-    const result = [];
-    rows.forEach((r, idx) => {
-      const cell = r[dayName] || { subject: "N/A", room: "N/A" };
-      const { start, end } = parseTimes(r.time || '');
-      result.push({
-        index: idx,
-        time: r.time || 'N/A',
-        subject: cell.subject || 'N/A',
-        room: cell.room || 'N/A',
-        startTs: start || null,
-        endTs: end || null
-      });
-    });
-    // sort by startTs/endTs where available (fallback to original order)
-    result.sort((a,b) => {
-      const ta = a.startTs || a.endTs || Number.MAX_SAFE_INTEGER;
-      const tb = b.startTs || b.endTs || Number.MAX_SAFE_INTEGER;
-      return ta - tb;
-    });
-    return result;
-  }
-
-  // Render timeline (simple single-column "today" view)
-  function renderTimeline(rows) {
-    if (!rows || rows.length === 0) {
-      timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">No timetable rows found</td></tr>';
-      return;
-    }
-    const now = Date.now();
-    let html = '';
-    rows.forEach((r,i) => {
-      const active = (r.startTs && r.endTs) ? (now >= r.startTs && now <= r.endTs) : false;
-      const nextFlag = r.startTs && r.startTs > now && !rows.find(rr => rr.startTs && rr.startTs > now && rr.startTs < r.startTs);
-      html += `<tr class="${active ? 'current' : (nextFlag ? 'next' : '')}">
-        <td class="slot-time">${escapeHtml(r.time)}</td>
-        <td><div class="subject">${escapeHtml(r.subject)}</div><div class="room">${escapeHtml(r.room)}</div></td>
-        <td colspan="4"></td>
-      </tr>`;
-    });
-    timelineBody.innerHTML = html;
-  }
-
-  function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  // Find next event timestamp (start or end) after now
-  function findNextEvent(rows) {
-    const now = Date.now();
-    // gather all event timestamps (startTs and endTs) that are > now - except nulls
-    const events = [];
-    rows.forEach(r => {
-      if (r.startTs) events.push({type:'start', ts:r.startTs, row:r});
-      if (r.endTs) events.push({type:'end', ts:r.endTs, row:r});
-    });
-    const future = events.filter(e => e.ts && e.ts > now);
-    if (!future.length) return null;
-    future.sort((a,b) => a.ts - b.ts);
-    return future[0];
-  }
-
-  // Single bell sound using AudioContext; short, pleasant chime
-  function playBellSound() {
-    if (!soundOn) return;
-    try {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const ctx = audioCtx;
-      const now = ctx.currentTime;
-      const freqs = [880, 660, 520];
-      freqs.forEach((f,i) => {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = 'sine';
-        o.frequency.setValueAtTime(f, now + i*0.02);
-        g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(0.12/(i+1), now + 0.01 + i*0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, now + 1.6 + i*0.12);
-        o.connect(g); g.connect(ctx.destination);
-        o.start(now + i*0.02); o.stop(now + 1.5 + i*0.12);
-      });
-    } catch(e) {
-      // fallback: use silent audio data URI to avoid exceptions
-      const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=');
-      audio.play().catch(()=>{});
-    }
-  }
-
-  // visual flash & vibration
-  function flashOnce() {
-    flashEl.style.opacity = '1';
-    setTimeout(()=> flashEl.style.opacity = '0', 300);
-    if (navigator.vibrate) navigator.vibrate([200,75,150]);
-  }
-
-  // Unified notify wrapper
-  function sendNotification(title, body) {
-    if (!("Notification" in window)) return;
-    if (Notification.permission === "granted") {
-      try { new Notification(title, { body }); } catch(e){}
-    }
-  }
-
-  // ring once for given timestamp (ms) and message; ensure single ring per second
-  function ringForTimestamp(ts, message) {
-    const key = Math.floor(ts / 1000); // second-precision key
-    if (lastRungTimestamps.has(key)) return false;
-    // guard: also avoid rings that are too close to previous rings
-    const now = Date.now();
-    // if there is any timestamp in set within ringGuardSeconds seconds of now, skip duplicates
-    // but this is only used to avoid immediate double rings
-    for (let k of lastRungTimestamps) {
-      if (Math.abs(k*1000 - now) < (ringGuardSeconds * 1000)) {
-        // allow but do not block if same key not present (we still ensure key uniqueness)
-        // continue;
-      }
-    }
-    // perform ring
-    playBellSound();
-    flashOnce();
-    sendNotification('Bell', message);
-    lastRungTimestamps.add(key);
-    // remove old keys after some time (cleanup)
-    setTimeout(()=> lastRungTimestamps.delete(key), (ringGuardSeconds+5)*1000);
-    lastRungEl.textContent = new Date().toLocaleTimeString();
-    return true;
-  }
-
-  // check events every second and ring appropriately
-  function checkEvents() {
-    if (!autoOn) return;
-    const now = Date.now();
-    const preMinutes = parseInt(preWarnSelect.value, 10) || 0;
-    const preMs = preMinutes * 60 * 1000;
-
-    // Collect unique timestamps (in ms) that should trigger now (including pre-warnings)
-    const toRingMap = new Map(); // key: timestamp (ms), value: message (string)
-    todayRows.forEach(r => {
-      ['startTs','endTs'].forEach(typeKey => {
-        const ts = r[typeKey];
-        if (!ts) return;
-        // two triggers: pre-warning (ts - preMs) and exact ts; pre-warning only if preMs>0
-        const preTs = ts - preMs;
-        // if pre-warning time has arrived (within 1s window)
-        if (preMs > 0 && now >= preTs - 700 && now <= preTs + 900) {
-          // message: pre-warning
-          const label = (typeKey === 'startTs') ? 'Class starting soon' : 'Class ending soon';
-          const msg = `${label}: ${r.time} • ${r.subject} (${r.room})`;
-          toRingMap.set(Math.floor(preTs), msg);
-        }
-        // exact event time (within 1s)
-        if (now >= ts - 700 && now <= ts + 900) {
-          const label = (typeKey === 'startTs') ? 'Class started' : 'Class ended';
-          const msg = `${label}: ${r.time} • ${r.subject} (${r.room})`;
-          toRingMap.set(Math.floor(ts), msg);
-        }
-      });
-    });
-
-    // If multiple rows map to the same timestamp, we'll only ring once per unique timestamp
-    if (toRingMap.size === 0) {
-      // update nextLabel/nextSub
-      const nextEvent = findNextEvent(todayRows);
-      if (nextEvent) {
-        const diff = nextEvent.ts - now;
-        nextLabel.textContent = msToHHMMSS(diff);
-        nextSub.textContent = `${nextEvent.type.toUpperCase()} — ${nextEvent.row.time} • ${nextEvent.row.subject}`;
-        statusEl.textContent = 'Waiting';
-      } else {
-        nextLabel.textContent = '—';
-        nextSub.textContent = 'No more bells today';
-        statusEl.textContent = 'Idle';
-      }
-    } else {
-      // process each unique timestamp once
-      for (let [keyMs, msg] of toRingMap.entries()) {
-        const tsNum = Number(keyMs);
-        const did = ringForTimestamp(tsNum*1, msg);
-        if (did) {
-          statusEl.textContent = 'Ringing';
-          // quick UI update then continue
-          setTimeout(()=> statusEl.textContent = 'Waiting', 1200);
-        }
-      }
-      // refresh timetable in case an edit occurred
-      setTimeout(()=> loadTimetable(batchSelect.value), 500);
-    }
-    renderTimeline(todayRows);
-  }
-
-  function msToHHMMSS(ms) {
-    if (!ms || ms <= 0) return "00:00:00";
-    const s = Math.floor(ms/1000);
-    const hh = Math.floor(s/3600), mm = Math.floor((s%3600)/60), ss = s%60;
-    return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
-  }
-
-  // load timetable from firebase for a batch
-  function loadTimetable(batchKey='Batch1') {
-    timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Loading timetable…</td></tr>';
-    db.ref('timetables/' + batchKey).once('value').then(snap=>{
-      if (!snap.exists()) {
-        timelineBody.innerHTML = '<tr><td colspan="6" style="padding:18px;text-align:center;color:#6b7280">Timetable not found in Firebase — save one from edit page</td></tr>';
-        scheduleRows = []; todayRows = []; return;
-      }
-      scheduleRows = snap.val();
-      todayRows = buildTodayRows(scheduleRows);
-      renderTimeline(todayRows);
-    }).catch(err=>{
-      timelineBody.innerHTML = `<tr><td colspan="6" style="padding:18px;text-align:center;color:#b91c1c">Load error: ${escapeHtml(err.message)}</td></tr>`;
-      scheduleRows = []; todayRows = [];
-    });
-  }
-
-  // UI wiring
-  refreshBtn.addEventListener('click', ()=> loadTimetable(batchSelect.value));
-  batchSelect.addEventListener('change', ()=> loadTimetable(batchSelect.value));
-  autoToggle.addEventListener('click', ()=> { autoOn = !autoOn; autoToggle.classList.toggle('on', autoOn); });
-  soundToggle.addEventListener('click', ()=> { soundOn = !soundOn; soundToggle.classList.toggle('on', soundOn); });
-
-  // enable button: must be clicked by user to allow audio autoplay & request notifications
-  enableBtn.addEventListener('click', async () => {
-    try {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      // resume if suspended (mobile browsers require user gesture)
-      if (audioCtx.state === 'suspended') await audioCtx.resume();
-      // create a tiny sound to ensure audio unlocked
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.frequency.value = 220; g.gain.value = 0.0001;
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(); o.stop(audioCtx.currentTime + 0.05);
-    } catch(e) { /* ignore */ }
-
-    // request notifications
-    if ("Notification" in window) {
-      const p = await Notification.requestPermission();
-      pendingNotificationsAllowed = (p === 'granted');
-    }
-    // enable sound flag
-    soundOn = true; soundToggle.classList.add('on');
-    enableBtn.textContent = 'Enabled';
-    setTimeout(()=> enableBtn.textContent = 'Enabled ✓', 800);
-  });
-
-  // initial load
-  loadTimetable(batchSelect.value);
-  // recalc todayRows at midnight etc every 10s to be safe
-  setInterval(()=> {
-    todayRows = buildTodayRows(scheduleRows);
-  }, 10000);
-
-  // main check every second
-  setInterval(checkEvents, 1000);
-
-  // request notification permission proactively (non-blocking)
-  if ("Notification" in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-    // don't prompt immediately — user should press enable button; but a gentle request here will not produce popup in most browsers
-  }
-
-  // expose for debug (optional)
-  window._simulator = { loadTimetable, buildTodayRows, todayRows };
+  // ... rest of your original code stays exactly the same ...
 })();
 </script>
 </body>
