@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Manage Announcements — Teacher</title>
 
-  <link rel="icon" href="data:image/svg+xml,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
-    <text y='.9em' font-size='85'>📣</text>
-  </svg>">
-
   <style>
     :root {
       --accent: #007aff;
@@ -35,23 +30,16 @@
       margin-bottom:18px;
     }
 
-    .nav h1 {
-      margin:0; font-size:24px; font-weight:600;
-      display:flex; gap:10px; align-items:center;
-    }
+    .nav h1 { margin:0; font-size:24px; font-weight:600; }
 
     button {
       cursor:pointer;
       border:none;
       border-radius:12px;
       padding:10px 16px;
-      font-weight:500;
     }
 
-    #signOutBtn {
-      background:var(--danger);
-      color:white;
-    }
+    #signOutBtn { background:var(--danger); color:white; }
 
     .card {
       width:90%; max-width:900px;
@@ -84,27 +72,40 @@
       display:flex; justify-content:space-between; gap:12px;
     }
 
-    .ann h3 { margin:0; font-size:17px; }
-    .ann p { margin:6px 0; font-size:15px; }
-    .meta { font-size:13px; color:var(--muted); margin-top:6px; }
-
     .small-btn {
-      padding:8px 12px; font-size:13px;
-      border:none; border-radius:10px;
+      padding:8px 12px;
+      border-radius:10px;
+      font-size:13px;
+      cursor:pointer;
     }
+
     .edit { background:#fff5c2; }
     .delete { background:#ffd1d1; }
 
-    a.home {
-      margin-top:20px;
-      color:var(--accent);
-      text-decoration:none;
-      font-weight:500;
+    /* Success Animation */
+    #successToast {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background:#007aff;
+      color:white;
+      padding:14px 18px;
+      border-radius:12px;
       font-size:15px;
+      opacity:0;
+      transform:translateY(20px);
+      transition:0.4s ease;
+      pointer-events:none;
     }
-  </style>
 
+    #successToast.show {
+      opacity:1;
+      transform:translateY(0);
+    }
+
+  </style>
 </head>
+
 <body>
 
   <div class="nav">
@@ -113,20 +114,22 @@
   </div>
 
   <div class="card">
-    <h2 style="margin:0 0 10px 0; font-size:20px;">Post New Announcement</h2>
+    <h2 style="margin:0 0 10px 0;">Post New Announcement</h2>
 
     <input id="title" placeholder="Title">
     <textarea id="message" placeholder="Write message..."></textarea>
 
-    <button class="primary" id="postBtn">Post Announcement</button>
+    <button class="primary" id="postBtn">Post</button>
   </div>
 
   <div class="card">
-    <h2 style="margin:0 0 10px 0; font-size:20px;">All Announcements</h2>
+    <h2 style="margin:0 0 10px 0;">All Announcements</h2>
     <div id="annList">Loading...</div>
   </div>
 
   <a href="index-teacher.html" class="home">← Back to Home</a>
+
+  <div id="successToast">Announcement posted ✔️</div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -134,15 +137,14 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
   <script>
-    // CONFIG
     const firebaseConfig = {
-      apiKey: "AIzaSyB3Lv_9EiVBVy5aXwiYOn0pgZu31ykFOGM",
-      authDomain: "digitalbellplisworkthistime.firebaseapp.com",
-      databaseURL: "https://digitalbellplisworkthistime-default-rtdb.firebaseio.com",
-      projectId: "digitalbellplisworkthistime",
-      storageBucket: "digitalbellplisworkthistime.firebasestorage.app",
-      messagingSenderId: "829189847707",
-      appId: "1:829189847707:web:99b13d5fe551b54d9ce43e"
+      apiKey:"AIzaSyB3Lv_9EiVBVy5aXwiYOn0pgZu31ykFOGM",
+      authDomain:"digitalbellplisworkthistime.firebaseapp.com",
+      databaseURL:"https://digitalbellplisworkthistime-default-rtdb.firebaseio.com",
+      projectId:"digitalbellplisworkthistime",
+      storageBucket:"digitalbellplisworkthistime.firebasestorage.app",
+      messagingSenderId:"829189847707",
+      appId:"1:829189847707:web:99b13d5fe551b54d9ce43e"
     };
     firebase.initializeApp(firebaseConfig);
 
@@ -152,35 +154,40 @@
     const adminUID = "lPvZ7WGuTVP1LcYvKjGYtOj1GBD3";
 
     auth.onAuthStateChanged(user => {
-      if (!user || user.uid !== adminUID) {
-        window.location.href = "index.html";
-        return;
-      }
+      if (!user || user.uid !== adminUID) location.href = "index.html";
     });
 
-    document.getElementById("signOutBtn").onclick = () =>
-      auth.signOut().then(() => (window.location.href = "index.html"));
+    document.getElementById("signOutBtn").onclick =
+      () => auth.signOut().then(() => location.href = "index.html");
 
-    // POST ANNOUNCEMENT
+    // Toast Animation
+    function showToast() {
+      const t = document.getElementById("successToast");
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    // POST
     document.getElementById("postBtn").onclick = () => {
-      const title = title.value.trim();
-      const msg = message.value.trim();
+      const t = document.getElementById("title").value.trim();
+      const m = document.getElementById("message").value.trim();
 
-      if (!title || !msg) return alert("Please fill all fields");
+      if (!t || !m) return alert("Fill all fields");
 
       const payload = {
-        title,
-        message: msg,
+        title: t,
+        message: m,
         timestamp: Date.now(),
         postedBy: auth.currentUser.email
       };
 
       db.ref("announcements").push(payload);
-      title.value = "";
-      message.value = "";
+      showToast();
+      document.getElementById("title").value = "";
+      document.getElementById("message").value = "";
     };
 
-    // LOAD ANNOUNCEMENTS — FIXED (no recursion)
+    // LOAD
     db.ref("announcements")
       .orderByChild("timestamp")
       .on("value", snap => {
@@ -193,44 +200,41 @@
         }
 
         const arr = [];
-        snap.forEach(s => arr.push({ id: s.key, ...s.val() }));
+        snap.forEach(s => arr.push({ id:s.key, ...s.val() }));
         arr.reverse();
 
         arr.forEach(a => {
-          const div = document.createElement("div");
-          div.className = "ann";
+          box.insertAdjacentHTML("beforeend", `
+            <div class="ann">
+              <div>
+                <h3>${escapeHtml(a.title)}</h3>
+                <p>${escapeHtml(a.message)}</p>
+                <div class="meta">
+                  Posted by ${escapeHtml(a.postedBy)} · ${new Date(a.timestamp).toLocaleString()}
+                </div>
+              </div>
 
-          div.innerHTML = `
-            <div>
-              <h3>${escapeHtml(a.title)}</h3>
-              <p>${escapeHtml(a.message)}</p>
-              <div class="meta">
-                Posted by ${escapeHtml(a.postedBy)} · ${new Date(a.timestamp).toLocaleString()}
+              <div>
+                <button class="small-btn edit" onclick="editAnn('${a.id}')">Edit</button>
+                <button class="small-btn delete" onclick="delAnn('${a.id}')">Delete</button>
               </div>
             </div>
-
-            <div>
-              <button class="small-btn edit" onclick="editAnn('${a.id}')">Edit</button>
-              <button class="small-btn delete" onclick="delAnn('${a.id}')">Delete</button>
-            </div>
-          `;
-
-          box.appendChild(div);
+          `);
         });
       });
 
     function editAnn(id) {
-      db.ref("announcements/" + id).once("value").then(snap => {
-        const val = snap.val();
-        const t = prompt("Edit title:", val.title);
-        if (t === null) return;
+      db.ref("announcements/"+id).once("value")
+      .then(s => {
+        const v = s.val();
+        const nt = prompt("Edit title:", v.title);
+        if (nt === null) return;
+        const nm = prompt("Edit message:", v.message);
+        if (nm === null) return;
 
-        const m = prompt("Edit message:", val.message);
-        if (m === null) return;
-
-        db.ref("announcements/" + id).update({
-          title: t,
-          message: m,
+        db.ref("announcements/"+id).update({
+          title: nt,
+          message: nm,
           editedAt: Date.now()
         });
       });
@@ -238,11 +242,12 @@
 
     function delAnn(id) {
       if (confirm("Delete this announcement?"))
-        db.ref("announcements/" + id).remove();
+        db.ref("announcements/"+id).remove();
     }
 
     function escapeHtml(t) {
-      return String(t).replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
+      return String(t ?? "")
+        .replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
     }
   </script>
 
