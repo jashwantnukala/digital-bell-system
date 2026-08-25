@@ -335,6 +335,216 @@ Total (2¹⁰=1024) − [C(10,0)+C(10,1)+C(10,2)+C(10,3)]
 
 ---
 
+---
+
+# PART 2 — ALL REMAINING SOLVED EXAMPLES (from the slides)
+
+## UNIT I — Additional Solved Examples
+
+### Set Theory Symbols (reference table)
+| Symbol | Meaning | Symbol | Meaning |
+|---|---|---|---|
+| {} | Set | n(A) | Cardinal number of A |
+| x∈A | x is element of A | P(A) | Power set |
+| x∉A | x not element of A | A⊆B | A is subset of B |
+| ∃ / ∄ | exists / doesn't exist | A⊂B | A is proper subset of B |
+| Φ | Empty set | A⊈B | A not subset of B |
+| A=B | Equal sets | B⊇A / B⊃A / B⊉A | superset / proper superset / not superset |
+
+### Solved: Set operations example
+U={1,2,3,4,5,6,7,8,9}, A={1,2,5,6}, B={2,5,7}, C={1,3,5,7,9}
+- (a) A∩B = **{2,5}** ; A∩C = **{1,5}**
+- (b) A∪B = **{1,2,5,6,7}** ; B∪C = **{1,2,3,5,7,9}**
+- (c) A' (=U−A) = **{3,4,7,8,9}** ; C' (=U−C) = **{2,4,6,8}**
+- (d) A−B = **{1,6}** ; A−C = **{2,6}**
+- (e) A⊕B = (A−B)∪(B−A) = {1,6}∪{7} = **{1,6,7}**
+  A⊕C = (A−C)∪(C−A) = {2,6}∪{3,7,9} = **{2,3,6,7,9}**
+- (f) (A∪C)−B: A∪C={1,2,3,5,6,7,9}, minus B{2,5,7} = **{1,3,6,9}**
+  (B⊕C)−A: B⊕C = {2}∪{1,3,9} = {1,2,3,9}, minus A{1,2,5,6} = **{3,9}**
+
+### Solved: 1–1000 divisibility (PIE) — full working
+Out of integers 1 to 1000, divisible by 3, 5, or 7:
+|A(mult.3)|=⌊1000/3⌋=333, |B(mult.5)|=⌊1000/5⌋=200, |C(mult.7)|=⌊1000/7⌋=142
+|A∩B|=⌊1000/15⌋=66, |A∩C|=⌊1000/21⌋=47, |B∩C|=⌊1000/35⌋=28, |A∩B∩C|=⌊1000/105⌋=9
+- Divisible by 3 or 5 or 7: 333+200+142−66−47−28+9 = **543**
+- Not divisible by 3,5, or 7: 1000−543 = **457**
+- Divisible by 3 but NOT by 5 and NOT by 7: |A|−|A∩B|−|A∩C|+|A∩B∩C| = 333−66−47+9 = **229**
+
+### Solved: Tautology / Contradiction / Neither (slide 98)
+| Expression | Result | Reason |
+|---|---|---|
+| a) [P∧(P→Q)]→Q | **Tautology** | This is Modus Ponens — always true |
+| b) (P→Q)↔(¬Q→¬P) | **Tautology** | Contrapositive is always equivalent |
+| c) (¬P∧Q)∧(P∨¬Q) | **Contradiction** | Truth table gives F in all 4 rows |
+| d) (P→¬Q)∨(¬R→P) | **Tautology** | Always true — check: if P=F, first disjunct true vacuously; if P=T, second disjunct (¬R→P) true since P=T |
+| e) (P→Q)∧(¬P∨Q) | **Neither** | Simplifies to just P→Q, which is F when P=T,Q=F |
+| f) (P→Q)→(P∧Q) | **Neither** | F when P=F,Q=F (since P→Q=T but P∧Q=F); T when P=Q=T |
+
+### Solved: Inference validity practice (slide 109)
+**1) Show q follows from p→q, p∨q, ¬q**
+1. p→q (given), 2. p∨q (given), 3. ¬q (given)
+From (1) and (3): by Modus Tollens → ¬p
+From (2) and ¬p: by Disjunctive Syllogism → q
+(Note: this actually shows the premise set is contradictory since we assumed ¬q but derive q — meaning these 3 premises together can never all be true; formally, q is "vacuously" implied.)
+
+**2) Show ¬p is implied by ¬(p∧¬q), ¬q∨r, ¬r**
+1. ¬(p∧¬q) ≡ ¬p∨q (De Morgan)
+2. ¬q∨r
+3. ¬r → r is false
+From (2) with r false: Disjunctive Syllogism → ¬q
+From (1) with ¬q true (q false): Disjunctive Syllogism → **¬p** ✔
+
+**3) Show r follows from p→q, q→r, p**
+1. p→q, 2. q→r → Hypothetical Syllogism gives p→r
+3. p (given) → Modus Ponens → **r** ✔
+
+### Solved: DNF conversion exercise (slide 114, #3)
+Convert ¬(p→(q∧r)) to DNF:
+≡ ¬(¬p∨(q∧r)) [implication law]
+≡ p∧¬(q∧r) [De Morgan]
+≡ p∧(¬q∨¬r) [De Morgan]
+≡ **(p∧¬q)∨(p∧¬r)** [distributive law] — this is DNF ✔
+
+---
+
+## UNIT II — Additional Solved Examples
+
+### Solved: Composition S∘R (slide 70)
+R = {(1,1),(1,4),(2,3),(3,1),(3,4)}, S = {(1,0),(2,0),(3,1),(3,2),(4,1)}
+Rule: (a,c) ∈ S∘R if ∃b with (a,b)∈R and (b,c)∈S.
+- (1,1)∈R, (1,0)∈S → (1,0)
+- (1,4)∈R, (4,1)∈S → (1,1)
+- (2,3)∈R, (3,1)∈S → (2,1); (3,2)∈S → (2,2)
+- (3,1)∈R, (1,0)∈S → (3,0)
+- (3,4)∈R, (4,1)∈S → (3,1)
+
+**S∘R = {(1,0),(1,1),(2,1),(2,2),(3,0),(3,1)}**
+
+### Solved: Warshall's Algorithm practice (slide 101)
+**(a)** A={1,2,3,4}, R={(1,2),(2,1),(2,3),(3,4)}
+Tracing reachability: 1→2→1 (cycle), 1→2→3→4; 2→1→2, 2→3→4; 3→4 only.
+**Transitive closure R\* = {(1,1),(1,2),(1,3),(1,4),(2,1),(2,2),(2,3),(2,4),(3,4)}**
+
+**(b)** A={1,2,3,4,5,6}, R={(x,y) : |x−y|=2}
+R = {(1,3),(3,1),(2,4),(4,2),(3,5),(5,3),(4,6),(6,4)}
+This splits into two connected chains: {1,3,5} and {2,4,6}, each fully interconnected (symmetric + chained).
+**Transitive closure = all ordered pairs within {1,3,5} (9 pairs) + all ordered pairs within {2,4,6} (9 pairs) = 18 pairs total**
+
+### Solved: Reflexive-transitive closure (slide 109)
+A = {(a,b) | b=a−1, a,b∈{1,2,3}} = {(2,1),(3,2)}
+- Transitive closure: 3→2→1 needs (3,1) added → {(2,1),(3,2),(3,1)}
+- Reflexive closure: add (1,1),(2,2),(3,3)
+
+**Reflexive-transitive closure = {(1,1),(2,2),(3,3),(2,1),(3,2),(3,1)}**
+
+### Solved: Hasse Diagram exercises
+**Slide 124:** R on A={1,2,3,4,5} is exactly the "≤" relation.
+**Hasse diagram = simple vertical chain: 1 — 2 — 3 — 4 — 5** (1 at bottom, 5 at top, each connected only to its immediate successor).
+
+**Slide 126 (Home assignment):** ({1,2,4,8,12,16}, ≤)
+Since ≤ totally orders all integers, this is simply a **chain**: 1 — 2 — 4 — 8 — 12 — 16 (bottom to top, each linked to the next in increasing order).
+
+### Solved: Basics of Counting practice
+**4-letter words from ROSE, no repetition:** 4×3×2×1 = **24**
+(with repetition allowed it would be 4⁴ = 256, as noted on slide)
+
+**2-digit even numbers from {1,2,3,4,5}, repetition allowed:**
+Last digit must be even → only 2,4 available (2 choices); first digit → 5 choices.
+Total = 5×2 = **10**
+
+**FE A (75 ways) or FE B (65 ways) student picks one rep (Sum Rule):** 75+65 = **140**
+**FE A and FE B pick separate reps (Product Rule):** 75×65 = **4875**
+
+**Project lists of 23,15,19 (Sum Rule):** 23+15+19 = **57**
+
+**Auditorium chairs: letter + number(1-100) (Product Rule):** 26×100 = **2600**
+
+**Bit strings of length 7:** 2⁷ = **128**
+
+**License plates, 3 letters + 3 digits:** 26×26×26×10×10×10 = **17,576,000**
+
+**License plates, 3 digits + 3 letters:** 10×10×10×26×26×26 = **17,576,000**
+
+**License plates, 2 letters + 4 digits (practice):** 26²×10⁴ = 676×10000 = **6,760,000**
+
+**32 microcomputers × 24 ports each:** 32×24 = **768 ports**
+
+**MCQ test, 10 questions, 4 options each:**
+- Every question answered: 4¹⁰ = **1,048,576**
+- Student may leave blank (5 options each): 5¹⁰ = **9,765,625**
+
+### Solved: License plates start/end constraint (already partly shown)
+How many license plates of 4-digit numbers start with 2 or end with 2:
+Start with 2: 2___= 10³=1000. End with 2: ___2 = 10³=1000. Both (2__2): 10²=100.
+Total = 1000+1000−100 = **1900**
+
+### Solved: Photographer wedding problem (slide 168–169)
+6 people chosen from 10 (bride & groom among the 10), arranged in a row:
+- **Bride must be in picture:** Bride placed in 1 of 6 positions (6 ways), remaining 5 seats filled from other 9 people: 6 × (9×8×7×6×5) = 6×15120 = **90,720**
+- **Both bride & groom must be in picture:** Choose positions for both (6×5 ways to place two specific people in 6 slots) × arrange remaining 4 from 8 people: 6×5×(8×7×6×5) = 30×1680 = **50,400**
+- **Exactly one of bride/groom in picture:** Choose which one (2 ways) × their position (6 ways) × fill remaining 5 seats from remaining 8 people (not the other of bride/groom): 2×6×(8×7×6×5×4) = 12×6720 = **80,640**
+
+### Solved: Repetition-permitted number problems (slide 189)
+Digits available: 2,3,4,5,7,9 (6 digits). Forming 3-digit numbers, repetition allowed.
+- (i) Total 3-digit numbers: 6×6×6 = **216**
+- (ii) Less than 400 (first digit must be 2 or 3): 2×6×6 = **72**
+- (iii) Even (last digit even: only 2,4 available): 6×6×2 = **72**
+- (iv) Odd (last digit odd: 3,5,7,9): 6×6×4 = **144**
+- (v) Multiple of 5 (last digit=5, only option): 6×6×1 = **36**
+- (vi) Multiple of 10 (last digit=0, not available): **0**
+
+License plates: 3 letters + 4 digits.
+- (i) Repetition allowed for both: 26³×10⁴ = 17576×10000 = **175,760,000**
+- (ii) Only letters repeated (digits all distinct): 26³×(10×9×8×7) = 17576×5040 = **88,583,040**
+- (iii) Only digits repeated (letters all distinct): (26×25×24)×10⁴ = 15600×10000 = **156,000,000**
+
+### Solved: Practice permutations (slide 190)
+- **4-letter words from LOGARITHMS (10 distinct letters), no repetition:** P(10,4) = 10×9×8×7 = **5040**
+- **Permutations of ENGINEERING (letters: E=3,N=3,G=2,I=2,R=1, total 11):**
+  11!/(3!·3!·2!·2!·1!) = 39,916,800/(6×6×2×2) = 39,916,800/144 = **277,200**
+- **3 distinct letters from MAST (4 distinct letters):** P(4,3) = 4×3×2 = **24**
+
+### Solved: Block Method examples (slide 191–193, verifying given answers)
+- **A,B,C,D,E: A,B,C always together:** treat ABC as 1 block → 3! (block+D+E) × 3! (internal arrangement) = 6×6 = **36**
+- **4 boys + 3 girls, girls always together:** 5! (block+4 boys) × 3! (internal) = 120×6 = **720**
+- **MISSISSIPPI, all 4 S's together:** treat SSSS as block X → remaining letters with X: {X,M,I,I,I,I,P,P} = 8 units, I repeats 4×, P repeats 2×
+  8!/(4!·2!) = 40320/48 = **840**
+
+### Solved: No-two-vowels-together (PERMUTATION) (slide 194)
+Word: PERMUTATION (vowels E,U,A,I,O = 5 vowels; consonants P,R,M,T,T,N = 6 letters, T repeats twice)
+Arrange 6 consonants first: 6!/2! = 360 ways, creating 7 gaps.
+Place 5 vowels into 7 gaps (no repeats among vowels, order matters): P(7,5) = 7×6×5×4×3 = 2520
+**Total = 360 × 2520 = 907,200**
+
+### Solved: 5 girls + 2 boys, boys not together (slide 195)
+Arrange 5 girls: 5! = 120 ways, creating 6 gaps; place 2 boys in 2 of 6 gaps (order matters): P(6,2) = 30
+**Total = 120 × 30 = 3600**
+
+### Solved: Combinations practice (slide 217)
+- **Select 6 balls out of 10:** C(10,6) = 10!/(6!4!) = **210**
+- **Committee of 10 from 8 boys + 6 girls:**
+  - (i) Same number of boys & girls (5 each, since total=10, 5+5): C(8,5)×C(6,5) = 56×6 = **336**
+  - (ii) At least 3 girls (girls=3,4,5,6 with boys=7,6,5,4 respectively):
+    C(6,3)C(8,7) + C(6,4)C(8,6) + C(6,5)C(8,5) + C(6,6)C(8,4)
+    = 20×8 + 15×28 + 6×56 + 1×70 = 160+420+336+70 = **986**
+
+### Solved: Gap method + plates + ASSASSINATION (slide 219)
+- **6 women + 5 men in a row, no two men together (Gap Method):**
+  Arrange 6 women: 6! = 720 ways → creates 7 gaps; place 5 men into gaps: P(7,5) = 2520
+  **Total = 720 × 2520 = 1,814,400**
+- **Automobile plates: 2 different letters + 3 different digits, first digit ≠ 0:**
+  26×25×9×9×8 = 650×648 = **421,200**
+- **Permutations of ASSASSINATION (letters: A=3,S=4,I=2,N=2,T=1,O=1, total=13):**
+  13!/(3!·4!·2!·2!) = 6,227,020,800/(6×24×2×2) = 6,227,020,800/576 = **10,810,800**
+
+### Solved: Bit strings & seating (slide 222)
+- **Bit strings length 8, start with 0 OR end with 11:** 2⁷+2⁶−2⁵ = 128+64−32 = **160**
+- **6 boys + 2 girls in a row:**
+  - (i) 2 girls together (block method): treat girls as 1 block → 7 units → 7! × 2! (internal) = 5040×2 = **10,080**
+  - (ii) 2 girls NOT together: Total arrangements (8!) − girls together (10,080) = 40,320−10,080 = **30,240**
+
+---
+
 ## Quick Revision Summary
 - **Unit I** = Foundations: Sets → Set Operations → PIE counting → Propositional Logic → Logical laws → Normal Forms → Predicates/Quantifiers → Proof techniques → Induction.
 - **Unit II** = Structures built on sets: Relations → Properties (RSAT) → Equivalence Relations/Partitions → Closures (reflexive/symmetric/transitive via Warshall) → Posets/Hasse Diagrams → Counting (Permutations & Combinations).
