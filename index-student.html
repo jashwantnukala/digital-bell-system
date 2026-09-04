@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Home</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650&display=swap');</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .now-slot-time { font-weight: 600; min-width: 128px; font-size: var(--fs-secondary); }
+    .now-slot-subject { font-weight: 600; }
+    .now-slot-room { color: var(--text-muted); font-size: var(--fs-meta); }
+    .preview-title { font-weight: 600; font-size: var(--fs-secondary); }
+    .preview-meta { color: var(--text-muted); font-size: var(--fs-meta); margin-top: 1px; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="brand"><span class="bell-mark"><i class="fa-solid fa-bell"></i></span> Digital Smart Bell System</div>
+      <nav>
+        <a class="nav-link active" href="index-student.html">Home</a>
+        <a class="nav-link" href="view.html">Timetable</a>
+        <a class="nav-link" href="announcements-view.html">Announcements</a>
+        <a class="nav-link" href="recent.html">Recent Changes</a>
+      </nav>
+      <div class="right"><span class="role-tag">Student</span></div>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Student Dashboard</h1>
+          <p class="subtitle text-secondary">Your day at a glance.</p>
+        </div>
+        <div class="batch-pill-group" id="batchPills">
+          <button class="batch-pill" data-batch="Batch1">Batch 1</button>
+          <button class="batch-pill" data-batch="Batch2">Batch 2</button>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <a href="view.html" class="stat-card" style="text-decoration:none;display:block;">
+          <div class="stat-icon"><i class="fa-solid fa-calendar-day"></i></div>
+          <div class="stat-value" id="statClassesToday">—</div>
+          <div class="stat-label">Classes today</div>
+        </a>
+        <a href="announcements-view.html" class="stat-card" style="text-decoration:none;display:block;">
+          <div class="stat-icon"><i class="fa-solid fa-bullhorn"></i></div>
+          <div class="stat-value" id="statAnnouncements">—</div>
+          <div class="stat-label">Announcements</div>
+        </a>
+        <a href="recent.html" class="stat-card" style="text-decoration:none;display:block;">
+          <div class="stat-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div class="stat-value" id="statRecentChanges">—</div>
+          <div class="stat-label">Recent changes</div>
+        </a>
+      </div>
+
+      <div class="widget-grid">
+        <div class="now-card">
+          <div class="now-header">
+            <h2 class="section-title">Today's Schedule</h2>
+            <span class="text-muted" id="todayWeekday">—</span>
+          </div>
+          <div class="now-body" id="scheduleBody">
+            <div class="loading-row">Loading timetable…</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="section-title">Latest Announcements</h2>
+            <a href="announcements-view.html" class="text-secondary">View all</a>
+          </div>
+          <div class="preview-list" id="annPreview">
+            <div class="loading-row">Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const db = firebase.database();
+    const STORAGE_KEY = "sbs_selected_batch";
+
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ---------- Batch selector ----------
+    const pillButtons = document.querySelectorAll(".batch-pill");
+    let currentBatch = localStorage.getItem(STORAGE_KEY) || "Batch1";
+
+    function setActivePill() {
+      pillButtons.forEach(b => b.classList.toggle("active", b.dataset.batch === currentBatch));
+    }
+
+    pillButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        currentBatch = btn.dataset.batch;
+        localStorage.setItem(STORAGE_KEY, currentBatch);
+        setActivePill();
+        loadSchedule(currentBatch);
+      });
+    });
+    setActivePill();
+
+    // ---------- Time parsing (same approach as bell simulator) ----------
+    function parseTimes(timeStr) {
+      if (!timeStr) return { start: null, end: null };
+      const regex = /(\d{1,2}:\d{2})\s*(am|pm|AM|PM)?/g;
+      const matches = [...timeStr.matchAll(regex)];
+      if (matches.length === 0) return { start: null, end: null };
+      const toDate = (hhmm, mer) => {
+        const parts = hhmm.split(':').map(s => parseInt(s,10));
+        let h = parts[0], m = parts[1];
+        if (mer) mer = mer.toLowerCase();
+        if (mer === 'pm' && h < 12) h += 12;
+        if (mer === 'am' && h === 12) h = 0;
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+      };
+      const first = matches[0], last = matches[matches.length-1];
+      const firstMer = first[2] ? first[2].toLowerCase() : null;
+      const lastMer = last[2] ? last[2].toLowerCase() : null;
+      const start = toDate(first[1], firstMer || lastMer);
+      const end = toDate(last[1], lastMer || firstMer);
+      return { start: start.getTime(), end: end.getTime() };
+    }
+
+    function buildTodayRows(rows) {
+      const dayName = new Date().toLocaleDateString(undefined, { weekday: 'long' });
+      const result = [];
+      rows.forEach((r) => {
+        const cell = r[dayName] || { subject: "N/A", room: "N/A" };
+        const { start, end } = parseTimes(r.time || '');
+        result.push({ time: r.time || 'N/A', subject: cell.subject || 'N/A', room: cell.room || 'N/A', startTs: start, endTs: end });
+      });
+      result.sort((a,b) => (a.startTs || Infinity) - (b.startTs || Infinity));
+      return result;
+    }
+
+    function renderSchedule(rows) {
+      const body = document.getElementById("scheduleBody");
+      const validRows = rows.filter(r => r.subject !== "N/A");
+
+      document.getElementById("statClassesToday").textContent = validRows.length;
+
+      if (validRows.length === 0) {
+        body.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-mug-hot"></i></div><div class="empty-title">No classes today</div><div class="text-secondary">Enjoy the free day.</div></div>`;
+        return;
+      }
+
+      const now = Date.now();
+      let html = "";
+      validRows.forEach(r => {
+        const isCurrent = r.startTs && r.endTs && now >= r.startTs && now <= r.endTs;
+        const isNext = r.startTs && r.startTs > now && !validRows.find(rr => rr.startTs && rr.startTs > now && rr.startTs < r.startTs);
+        html += `
+          <div class="now-slot ${isCurrent ? 'is-current' : ''}">
+            <div class="now-slot-icon"><i class="fa-solid ${isCurrent ? 'fa-circle-play' : 'fa-clock'}"></i></div>
+            <div class="now-slot-time">${escapeHtml(r.time)}</div>
+            <div>
+              <div class="now-slot-subject">${escapeHtml(r.subject)}</div>
+              <div class="now-slot-room">${escapeHtml(r.room)}</div>
+            </div>
+            <div style="margin-left:auto;">
+              ${isCurrent ? '<span class="badge badge-accent">Now</span>' : (isNext ? '<span class="badge badge-neutral">Next</span>' : '')}
+            </div>
+          </div>`;
+      });
+      body.innerHTML = html;
+    }
+
+    function loadSchedule(batch) {
+      document.getElementById("todayWeekday").textContent = new Date().toLocaleDateString(undefined, { weekday: 'long' });
+      document.getElementById("scheduleBody").innerHTML = `<div class="loading-row">Loading timetable…</div>`;
+
+      db.ref("timetables/" + batch).once("value").then(snap => {
+        if (!snap.exists()) {
+          document.getElementById("scheduleBody").innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-calendar-xmark"></i></div><div class="empty-title">No timetable found</div><div class="text-secondary">Ask your teacher to publish one.</div></div>`;
+          document.getElementById("statClassesToday").textContent = "0";
+          return;
+        }
+        renderSchedule(buildTodayRows(snap.val()));
+      }).catch(() => {
+        document.getElementById("scheduleBody").innerHTML = `<div class="alert alert-error">Couldn't load the timetable. Please try again.</div>`;
+      });
+    }
+
+    loadSchedule(currentBatch);
+
+    // ---------- Announcements preview + stat ----------
+    db.ref("announcements").orderByChild("timestamp").limitToLast(3).on("value", snap => {
+      const box = document.getElementById("annPreview");
+
+      if (!snap.exists()) {
+        document.getElementById("statAnnouncements").textContent = "0";
+        box.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-bullhorn"></i></div><div class="empty-title">No announcements yet</div></div>`;
+        return;
+      }
+
+      const items = [];
+      snap.forEach(child => items.push(child.val() || {}));
+      items.reverse();
+
+      box.innerHTML = items.map(a => `
+        <div class="preview-row">
+          <div class="preview-icon"><i class="fa-solid fa-bullhorn"></i></div>
+          <div>
+            <div class="preview-title">${escapeHtml(a.title || "Untitled")}</div>
+            <div class="preview-meta">${a.timestamp ? new Date(a.timestamp).toLocaleString() : "Time not available"}</div>
+          </div>
+        </div>
+      `).join("");
+    });
+
+    db.ref("announcements").once("value").then(snap => {
+      document.getElementById("statAnnouncements").textContent = snap.exists() ? snap.numChildren() : 0;
+    });
+
+    // ---------- Recent changes stat ----------
+    db.ref("recentChanges").once("value").then(snap => {
+      document.getElementById("statRecentChanges").textContent = snap.exists() ? snap.numChildren() : 0;
+    }).catch(() => {
+      document.getElementById("statRecentChanges").textContent = "0";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Smart Bell System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap');</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .landing {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .landing-top {
+      border-bottom: 1px solid var(--border);
+      padding: var(--sp-4) var(--sp-6);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+
+    .landing-top .bell-mark {
+      width: 30px; height: 30px; border-radius: var(--radius-sm);
+      background: var(--accent-soft); color: var(--accent);
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+    }
+
+    .landing-top .brand-name { font-weight: 650; font-size: 16px; }
+
+    .landing-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-8) var(--sp-6);
+    }
+
+    .landing-content {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .landing-heading {
+      text-align: center;
+      margin-bottom: var(--sp-8);
+    }
+
+    .landing-heading h1 {
+      font-size: 30px;
+      font-weight: 650;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      margin-bottom: var(--sp-2);
+    }
+
+    .landing-heading p {
+      color: var(--text-secondary);
+      font-size: var(--fs-body);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-4);
+    }
+
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--sp-6);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .role-card:hover { border-color: var(--accent-soft-border); background: var(--accent-soft); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+    .role-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .role-card .role-icon {
+      width: 34px; height: 34px; border-radius: var(--radius-sm);
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent); font-size: 15px; margin-bottom: var(--sp-3);
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .role-card:hover .role-icon { background: var(--surface); border-color: var(--accent-soft-border); }
+
+    .role-card .role-label {
+      font-size: var(--fs-card-title);
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: var(--sp-1);
+    }
+
+    .role-card .role-desc {
+      font-size: var(--fs-secondary);
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .simulator-row {
+      margin-top: var(--sp-6);
+      text-align: center;
+    }
+
+    #login-box {
+      margin-top: var(--sp-6);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--sp-6);
+      display: none;
+    }
+
+    #login-box h3 { font-size: var(--fs-section-title); font-weight: 600; margin-bottom: var(--sp-4); }
+
+    @media (max-width: 640px) {
+      .role-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="landing">
+    <div class="landing-top">
+      <div class="bell-mark"><i class="fa-solid fa-bell"></i></div>
+      <div class="brand-name">Digital Smart Bell System</div>
+    </div>
+
+    <div class="landing-body">
+      <div class="landing-content">
+        <div class="landing-heading">
+          <h1>Digital Smart Bell System</h1>
+          <p>Class timetables, announcements, and automated bell scheduling for your institution.</p>
+        </div>
+
+        <div class="role-grid">
+          <button class="role-card" onclick="window.location.href='index-student.html'">
+            <div class="role-icon"><i class="fa-solid fa-user-graduate"></i></div>
+            <div class="role-label">I am a Student</div>
+            <div class="role-desc">View your weekly timetable, announcements, and recent timetable changes.</div>
+          </button>
+
+          <button class="role-card" id="teacherRoleBtn" onclick="selectTeacher()">
+            <div class="role-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+            <div class="role-label">I am a Teacher</div>
+            <div class="role-desc">Sign in to edit timetables, post announcements, and manage the bell system.</div>
+          </button>
+        </div>
+
+        <div class="simulator-row">
+          <a href="simulator.html" class="btn btn-secondary"><i class="fa-solid fa-volume-high"></i> Open Digital Bell Simulator</a>
+        </div>
+
+        <div id="login-box">
+          <h3>Teacher Login</h3>
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input id="email" class="input" type="email" placeholder="you@school.edu">
+          </div>
+          <div class="field">
+            <label class="label" for="password">Password</label>
+            <input id="password" class="input" type="password" placeholder="Password">
+          </div>
+          <button class="btn btn-primary w-full" onclick="login()">Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script src="firebase-config.js"></script>
+
+  <script>
+    function selectTeacher() {
+      document.getElementById('login-box').style.display = 'block';
+    }
+
+    function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = "index-teacher.html";
+        })
+        .catch(err => alert(err.message));
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Manage Announcements — Teacher</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650&display=swap');</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ann-row {
+      display: flex; justify-content: space-between; gap: var(--sp-4);
+      padding: var(--sp-4) 0; border-bottom: 1px solid var(--border);
+    }
+    .ann-row:last-child { border-bottom: none; }
+    .ann-row h3 { font-size: var(--fs-card-title); font-weight: 600; margin-bottom: var(--sp-1); }
+    .ann-row p { font-size: var(--fs-body); margin-bottom: var(--sp-2); white-space: pre-wrap; }
+    .ann-actions { display: flex; gap: var(--sp-2); flex-shrink: 0; }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="brand"><span class="bell-mark"><i class="fa-solid fa-bell"></i></span> Digital Smart Bell System</div>
+      <nav>
+        <a class="nav-link" href="index-teacher.html">Home</a>
+        <a class="nav-link" href="edit.html">Edit Timetable</a>
+        <a class="nav-link active" href="announcements-edit.html">Announcements</a>
+        <a class="nav-link" href="recent.html">Recent Changes</a>
+        <a class="nav-link" href="simulator.html">Bell Simulator</a>
+      </nav>
+      <div class="right">
+        <span class="role-tag">Teacher</span>
+        <button class="btn btn-danger" id="signOutBtn">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Manage Announcements</h1>
+          <p class="subtitle text-secondary">Post new updates and manage existing ones.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h2 class="section-title">Post New Announcement</h2></div>
+        <div class="field">
+          <label class="label" for="title">Title</label>
+          <input id="title" class="input" placeholder="Announcement title">
+        </div>
+        <div class="field">
+          <label class="label" for="message">Message</label>
+          <textarea id="message" class="textarea" placeholder="Write message..."></textarea>
+        </div>
+        <button class="btn btn-primary" id="postBtn">Post Announcement</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h2 class="section-title">All Announcements</h2></div>
+        <div id="annList"><div class="loading-row">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="successToast"><i class="fa-solid fa-circle-check"></i> Announcement posted</div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey:"AIzaSyB3Lv_9EiVBVy5aXwiYOn0pgZu31ykFOGM",
+      authDomain:"digitalbellplisworkthistime.firebaseapp.com",
+      databaseURL:"https://digitalbellplisworkthistime-default-rtdb.firebaseio.com",
+      projectId:"digitalbellplisworkthistime",
+      storageBucket:"digitalbellplisworkthistime.firebasestorage.app",
+      messagingSenderId:"829189847707",
+      appId:"1:829189847707:web:99b13d5fe551b54d9ce43e"
+    };
+    if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+    }
+
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    const adminUID = "lPvZ7WGuTVP1LcYvKjGYtOj1GBD3";
+
+    auth.onAuthStateChanged(user => {
+      if (!user || user.uid !== adminUID) location.href = "index.html";
+    });
+
+    document.getElementById("signOutBtn").onclick =
+      () => auth.signOut().then(() => location.href = "index.html");
+
+    function showToast() {
+      const t = document.getElementById("successToast");
+      t.classList.add("show", "toast-success");
+      setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    document.getElementById("postBtn").onclick = () => {
+      const t = document.getElementById("title").value.trim();
+      const m = document.getElementById("message").value.trim();
+
+      if (!t || !m) return alert("Fill all fields");
+
+      db.ref("announcements").push({
+        title: t,
+        message: m,
+        timestamp: Date.now(),
+        postedBy: auth.currentUser.email
+      });
+
+      showToast();
+      document.getElementById("title").value = "";
+      document.getElementById("message").value = "";
+    };
+
+    db.ref("announcements")
+      .orderByChild("timestamp")
+      .on("value", snap => {
+        const box = document.getElementById("annList");
+        box.innerHTML = "";
+
+        if (!snap.exists()) {
+          box.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-bullhorn"></i></div><div class="empty-title">No announcements yet</div><div class="text-secondary">Post your first announcement above.</div></div>`;
+          return;
+        }
+
+        const arr = [];
+        snap.forEach(s => arr.push({ id:s.key, ...s.val() }));
+        arr.reverse();
+
+        arr.forEach(a => {
+          box.insertAdjacentHTML("beforeend", `
+            <div class="ann-row">
+              <div>
+                <h3>${escapeHtml(a.title)}</h3>
+                <p>${escapeHtml(a.message)}</p>
+                <div class="text-muted">
+                  Posted by ${escapeHtml(a.postedBy)} · ${new Date(a.timestamp).toLocaleString()}
+                </div>
+              </div>
+
+              <div class="ann-actions">
+                <button class="btn btn-secondary btn-sm" onclick="editAnn('${a.id}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="delAnn('${a.id}')">Delete</button>
+              </div>
+            </div>
+          `);
+        });
+      });
+
+    function editAnn(id) {
+      db.ref("announcements/"+id).once("value").then(s => {
+        const v = s.val();
+        const nt = prompt("Edit title:", v.title);
+        if (nt === null) return;
+
+        const nm = prompt("Edit message:", v.message);
+        if (nm === null) return;
+
+        db.ref("announcements/"+id).update({
+          title: nt,
+          message: nm,
+          editedAt: Date.now()
+        });
+      });
+    }
+
+    function delAnn(id) {
+      if (confirm("Delete this announcement?"))
+        db.ref("announcements/"+id).remove();
+    }
+
+    function escapeHtml(t) {
+      return String(t ?? "")
+        .replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;"," >":"&gt;" }[c]));
+    }
+  </script>
+
+</body>
+</html>
