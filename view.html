@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Timetable</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650&display=swap');</style>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .slot { font-weight: 600; width: 160px; }
+    .cell-sub { display: block; font-size: var(--fs-meta); color: var(--text-muted); margin-top: 2px; }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="brand"><span class="bell-mark">🔔</span> Digital Smart Bell System</div>
+      <nav>
+        <a class="nav-link" href="index-student.html">Home</a>
+        <a class="nav-link active" href="view.html">Timetable</a>
+        <a class="nav-link" href="announcements-view.html">Announcements</a>
+        <a class="nav-link" href="recent.html">Recent Changes</a>
+      </nav>
+      <div class="right"><span class="role-tag">Student</span></div>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">View Timetable</h1>
+          <p class="subtitle text-secondary">Select a batch to see its weekly schedule.</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary" id="batch1Btn">Batch 1</button>
+          <button class="btn btn-secondary" id="batch2Btn">Batch 2</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+              </tr>
+            </thead>
+            <tbody id="timetable">
+              <tr><td colspan="6" class="loading-row">Select a batch above to load its timetable.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const db = firebase.database();
+    const tbody = document.getElementById("timetable");
+
+    function safe(obj, field) {
+      return obj && obj[field] ? obj[field] : "N/A";
+    }
+
+    function renderTable(rows) {
+      tbody.innerHTML = "";
+
+      rows.forEach((row) => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="slot">${row.time}</td>
+
+            <td>${safe(row.Monday, "subject")}<span class="cell-sub">${safe(row.Monday, "room")}</span></td>
+            <td>${safe(row.Tuesday, "subject")}<span class="cell-sub">${safe(row.Tuesday, "room")}</span></td>
+            <td>${safe(row.Wednesday, "subject")}<span class="cell-sub">${safe(row.Wednesday, "room")}</span></td>
+            <td>${safe(row.Thursday, "subject")}<span class="cell-sub">${safe(row.Thursday, "room")}</span></td>
+            <td>${safe(row.Friday, "subject")}<span class="cell-sub">${safe(row.Friday, "room")}</span></td>
+          </tr>
+        `;
+      });
+    }
+
+    function loadBatch(batch) {
+      tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Loading timetable…</td></tr>`;
+      document.getElementById("batch1Btn").classList.toggle("active", batch === "Batch1");
+      document.getElementById("batch2Btn").classList.toggle("active", batch === "Batch2");
+
+      db.ref("timetables/" + batch).once("value", (snap) => {
+        if (!snap.exists()) {
+          tbody.innerHTML = `<tr><td colspan="6" class="loading-row">No data found for this batch.</td></tr>`;
+          return;
+        }
+        renderTable(snap.val());
+      });
+    }
+
+    document.getElementById("batch1Btn").onclick = () => loadBatch("Batch1");
+    document.getElementById("batch2Btn").onclick = () => loadBatch("Batch2");
+  </script>
+
+</body>
+</html>

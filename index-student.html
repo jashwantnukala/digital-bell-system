@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Home</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650&display=swap');</style>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-4);
+      margin-top: var(--sp-6);
+    }
+
+    .quick-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--sp-6);
+    }
+
+    .quick-card .icon {
+      width: 34px; height: 34px; border-radius: var(--radius-sm);
+      background: var(--accent-soft); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; margin-bottom: var(--sp-3);
+    }
+
+    .quick-card .quick-desc { margin: var(--sp-1) 0 var(--sp-4); }
+
+    @media (max-width: 720px) {
+      .quick-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="brand"><span class="bell-mark">🔔</span> Digital Smart Bell System</div>
+      <nav>
+        <a class="nav-link active" href="index-student.html">Home</a>
+        <a class="nav-link" href="view.html">Timetable</a>
+        <a class="nav-link" href="announcements-view.html">Announcements</a>
+        <a class="nav-link" href="recent.html">Recent Changes</a>
+      </nav>
+      <div class="right"><span class="role-tag">Student</span></div>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Student Dashboard</h1>
+          <p class="subtitle text-secondary">Your timetable, announcements, and recent academic updates.</p>
+        </div>
+      </div>
+
+      <div class="quick-grid">
+        <div class="quick-card">
+          <div class="icon">🗓</div>
+          <div class="card-title">View Timetable</div>
+          <p class="quick-desc text-secondary">See your complete weekly class schedule.</p>
+          <a href="view.html" class="btn btn-secondary">Open</a>
+        </div>
+
+        <div class="quick-card">
+          <div class="icon">📣</div>
+          <div class="card-title">Announcements</div>
+          <p class="quick-desc text-secondary">Stay updated with important notices from teachers.</p>
+          <a href="announcements-view.html" class="btn btn-secondary">View</a>
+        </div>
+
+        <div class="quick-card">
+          <div class="icon">🕓</div>
+          <div class="card-title">Recent Changes</div>
+          <p class="quick-desc text-secondary">Check the latest modifications made to the timetable.</p>
+          <a href="recent.html" class="btn btn-secondary">See Updates</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

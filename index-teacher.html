@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Dashboard</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650&display=swap');</style>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .action-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+      margin-top: var(--sp-6);
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--sp-4) var(--sp-6);
+      cursor: pointer;
+      transition: border-color 0.12s ease;
+    }
+
+    .action-row:hover { border-color: var(--accent-soft-border); background: var(--accent-soft); }
+
+    .action-row.primary { border-color: var(--accent-soft-border); background: var(--accent-soft); }
+
+    .action-row .action-text .card-title { margin-bottom: 2px; }
+
+    .action-row .icon {
+      width: 34px; height: 34px; border-radius: var(--radius-sm);
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+    }
+
+    .action-row-inner { display: flex; align-items: center; gap: var(--sp-4); }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="brand"><span class="bell-mark">🔔</span> Digital Smart Bell System</div>
+      <nav>
+        <a class="nav-link active" href="index-teacher.html">Home</a>
+        <a class="nav-link" href="edit.html">Edit Timetable</a>
+        <a class="nav-link" href="announcements-edit.html">Announcements</a>
+        <a class="nav-link" href="recent.html">Recent Changes</a>
+        <a class="nav-link" href="simulator.html">Bell Simulator</a>
+      </nav>
+      <div class="right">
+        <span class="role-tag">Teacher</span>
+        <button class="btn btn-danger" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Welcome, Teacher</h1>
+          <p class="subtitle text-secondary">Manage timetables, announcements, and the bell system.</p>
+        </div>
+      </div>
+
+      <div class="action-list">
+        <div class="action-row primary" onclick="location.href='edit.html'">
+          <div class="action-row-inner">
+            <div class="icon">✏️</div>
+            <div class="action-text">
+              <div class="card-title">Edit Timetable</div>
+              <div class="text-secondary">Modify any batch timetable.</div>
+            </div>
+          </div>
+          <span class="badge badge-accent">Frequent</span>
+        </div>
+
+        <div class="action-row primary" onclick="location.href='announcements-edit.html'">
+          <div class="action-row-inner">
+            <div class="icon">📣</div>
+            <div class="action-text">
+              <div class="card-title">Post Announcements</div>
+              <div class="text-secondary">Send updates visible to all students.</div>
+            </div>
+          </div>
+          <span class="badge badge-accent">Frequent</span>
+        </div>
+
+        <div class="action-row" onclick="location.href='view.html'">
+          <div class="action-row-inner">
+            <div class="icon">🗓</div>
+            <div class="action-text">
+              <div class="card-title">View Timetable</div>
+              <div class="text-secondary">Check timetable for any batch.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row" onclick="location.href='recent.html'">
+          <div class="action-row-inner">
+            <div class="icon">🕓</div>
+            <div class="action-text">
+              <div class="card-title">Recent Changes</div>
+              <div class="text-secondary">View who edited what and when.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row" onclick="location.href='simulator.html'">
+          <div class="action-row-inner">
+            <div class="icon">🔔</div>
+            <div class="action-text">
+              <div class="card-title">Digital Bell Simulator</div>
+              <div class="text-secondary">Run the automatic bell for today's schedule.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
+
+  <!-- 🔐 AUTH PROTECTION (now placed correctly) -->
+  <script>
+  firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+          alert("Access denied. Please log in as a teacher.");
+          window.location.href = "index.html";
+          return;
+      }
+
+      const allowedTeachers = [
+          "jashwantnukala2025.comp@mmcoe.edu.in",
+          "teacher2@school.com"
+      ];
+
+      if (!allowedTeachers.includes(user.email)) {
+          alert("Unauthorized access! Students cannot edit timetable.");
+          firebase.auth().signOut();
+          window.location.href = "index.html";
+      }
+  });
+  </script>
+  <script>
+    document.getElementById("logoutBtn").onclick = function () {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    };
+  </script>
+</body>
+</html>

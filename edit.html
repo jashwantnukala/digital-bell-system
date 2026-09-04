@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Timetable</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650&display=swap');</style>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    #timetableTable { width: 100%; border-collapse: collapse; font-size: var(--fs-secondary); }
+    #timetableTable th {
+      text-align: left; font-size: var(--fs-label); font-weight: 600; color: var(--text-secondary);
+      padding: var(--sp-3); border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    #timetableTable td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--border); vertical-align: top; }
+
+    .cell-subj, .cell-room, .cell-time {
+      width: 100%;
+      height: 36px;
+      padding: 0 var(--sp-2);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      font-size: var(--fs-secondary);
+      font-family: var(--font);
+      box-sizing: border-box;
+      margin-bottom: var(--sp-1);
+      background: var(--surface);
+      color: var(--text);
+    }
+    .cell-subj:focus, .cell-room:focus, .cell-time:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .cell-time { font-weight: 600; }
+
+    .save-row { display: flex; align-items: center; gap: var(--sp-3); margin-top: var(--sp-6); }
+    #message { font-size: var(--fs-secondary); }
+    #message.success { color: var(--success); }
+    #message.error { color: var(--danger); }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="brand"><span class="bell-mark">🔔</span> Digital Smart Bell System</div>
+      <nav>
+        <a class="nav-link" href="index-teacher.html">Home</a>
+        <a class="nav-link active" href="edit.html">Edit Timetable</a>
+        <a class="nav-link" href="announcements-edit.html">Announcements</a>
+        <a class="nav-link" href="recent.html">Recent Changes</a>
+        <a class="nav-link" href="simulator.html">Bell Simulator</a>
+      </nav>
+      <div class="right"><span class="role-tag">Teacher</span></div>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Edit Timetable</h1>
+          <p class="subtitle text-secondary">Select a batch, edit any cell, then save your changes.</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary" id="batch1Btn">Batch 1</button>
+          <button class="btn btn-secondary" id="batch2Btn">Batch 2</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap" id="gridContainer">
+          <table id="timetableTable">
+            <tbody>
+              <tr><td class="loading-row">Select a batch above to start editing.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="save-row">
+          <button class="btn btn-primary" id="saveBtn">Save Changes</button>
+          <div id="message"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase FIRST (important) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <!-- Your config -->
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
+
+  <!-- 🔐 AUTH PROTECTION (now placed correctly) -->
+  <script>
+  firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+          alert("Access denied. Please log in as a teacher.");
+          window.location.href = "index.html";
+          return;
+      }
+
+      const allowedTeachers = [
+          "jashwantnukala2025.comp@mmcoe.edu.in",
+          "teacher2@school.com"
+      ];
+
+      if (!allowedTeachers.includes(user.email)) {
+          alert("Unauthorized access! Students cannot edit timetable.");
+          firebase.auth().signOut();
+          window.location.href = "index.html";
+      }
+  });
+  </script>
+
+  <!-- MAIN TIMETABLE SCRIPT -->
+  <script>
+    (function () {
+      const db = firebase.database();
+      const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+      let currentBatch = "";
+
+      const tableEl = document.getElementById("timetableTable");
+      const messageEl = document.getElementById("message");
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g,'&amp;')
+          .replace(/"/g,'&quot;')
+          .replace(/'/g,'&#39;')
+          .replace(/</g,'&lt;')
+          .replace(/>/g,'&gt;');
+      }
+
+      function renderGrid(rows) {
+        let html = "<thead><tr><th>Time</th>";
+        days.forEach(d => { html += `<th>${d}</th>`; });
+        html += "</tr></thead><tbody>";
+
+        rows.forEach((r, rowIdx) => {
+          html += `<tr data-row="${rowIdx}">`;
+          html += `<td><input class="cell-time" value="${escapeHtml(r.time)}"></td>`;
+
+          days.forEach(d => {
+            const cell = r[d] || {subject:"N/A", room:"N/A"};
+            html += `
+              <td>
+                <input class="cell-subj" value="${escapeHtml(cell.subject)}">
+                <input class="cell-room" value="${escapeHtml(cell.room)}">
+              </td>`;
+          });
+
+          html += "</tr>";
+        });
+
+        html += "</tbody>";
+        tableEl.innerHTML = html;
+      }
+
+      function loadBatch(batch) {
+        currentBatch = batch;
+        messageEl.textContent = "";
+        messageEl.className = "";
+        document.getElementById("batch1Btn").classList.toggle("active", batch === "Batch1");
+        document.getElementById("batch2Btn").classList.toggle("active", batch === "Batch2");
+
+        db.ref("timetables/" + batch).once("value").then(snap => {
+          if (snap.exists()) renderGrid(snap.val());
+          else alert("No timetable found!");
+        });
+      }
+
+      function save() {
+        if (!currentBatch) return alert("Select a batch first!");
+
+        const rows = [];
+        const trs = tableEl.querySelectorAll("tbody tr");
+
+        trs.forEach(tr => {
+          const time = tr.querySelector(".cell-time").value || "N/A";
+          const rowObj = { time };
+
+          days.forEach((d, i) => {
+            const subj = tr.querySelectorAll(".cell-subj")[i].value || "N/A";
+            const room = tr.querySelectorAll(".cell-room")[i].value || "N/A";
+            rowObj[d] = { subject: subj, room: room };
+          });
+
+          rows.push(rowObj);
+        });
+
+        db.ref("timetables/" + currentBatch).set(rows).then(() => {
+          messageEl.textContent = "✅ Saved!";
+          messageEl.className = "success";
+          setTimeout(() => { messageEl.textContent = ""; messageEl.className = ""; }, 2000);
+        }).catch(() => {
+          messageEl.textContent = "Save failed. Please try again.";
+          messageEl.className = "error";
+        });
+      }
+
+      document.getElementById("batch1Btn").onclick = () => loadBatch("Batch1");
+      document.getElementById("batch2Btn").onclick = () => loadBatch("Batch2");
+      document.getElementById("saveBtn").onclick = save;
+    })();
+  </script>
+
+</body>
+</html>
