@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recent Changes</title>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650&display=swap');</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      .filters { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-4); }
+      #searchBox { max-width: 320px; flex: 1; min-width: 200px; }
+      #batchFilter { width: auto; min-width: 140px; }
+
+      .change-row {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--sp-4);
+        padding: var(--sp-4) 0;
+        border-top: 1px solid var(--border);
+        transition: background-color 0.15s ease;
+      }
+      .change-row:first-child { border-top: none; }
+
+      .change-icon {
+        width: 34px; height: 34px; border-radius: var(--radius-sm);
+        background: var(--accent-soft); color: var(--accent);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; flex-shrink: 0;
+      }
+
+      .change-main { flex: 1; min-width: 0; }
+      .change-title { font-weight: 600; font-size: var(--fs-secondary); display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+      .change-meta { color: var(--text-muted); font-size: var(--fs-meta); margin-top: 2px; }
+
+      .change-diff {
+        margin-top: var(--sp-2);
+        display: flex;
+        align-items: center;
+        gap: var(--sp-2);
+        font-size: var(--fs-secondary);
+      }
+      .diff-before { color: var(--text-muted); text-decoration: line-through; }
+      .diff-after { color: var(--text); font-weight: 600; }
+      .diff-arrow { color: var(--text-muted); }
+
+      .change-time { color: var(--text-muted); font-size: var(--fs-meta); flex-shrink: 0; white-space: nowrap; padding-top: 2px; }
+    </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="brand"><span class="bell-mark"><i class="fa-solid fa-bell"></i></span> Digital Smart Bell System</div>
+      <nav>
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link active" href="recent.html">Recent Changes</a>
+      </nav>
+    </div>
+
+    <div class="main">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Recent Timetable Changes</h1>
+          <p class="subtitle text-secondary">Every edit made through the Edit Timetable page, logged automatically.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="filters">
+          <input type="text" id="searchBox" class="input" placeholder="Search teacher, subject, room, day…">
+          <select id="batchFilter" class="select">
+            <option value="">All batches</option>
+            <option value="Batch1">Batch 1</option>
+            <option value="Batch2">Batch 2</option>
+          </select>
+        </div>
+
+        <div id="changesList">
+          <div class="loading-row">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+function safe(v) {
+    return (v === null || v === undefined || v === "") ? "N/A" : v;
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+const fieldIcons = {
+  "Subject": "fa-book",
+  "Room": "fa-door-open",
+  "Time": "fa-clock"
+};
+
+let allChanges = [];
+
+function loadRecentChanges() {
+    const list = document.getElementById("changesList");
+    list.innerHTML = "<div class='loading-row'>Loading…</div>";
+
+    // Plain listener on the whole node (no orderByChild) — avoids any query/index
+    // edge cases and lets us see exactly what's actually stored.
+    firebase.database().ref("recentChanges").on("value", (snapshot) => {
+            if (!snapshot.exists()) {
+                allChanges = [];
+                list.innerHTML = `
+                  <div class="empty-state">
+                    <div class="empty-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="empty-title">No changes recorded yet</div>
+                    <div class="text-secondary">Edits made on the Edit Timetable page will show up here automatically.</div>
+                  </div>`;
+                return;
+            }
+
+            const raw = snapshot.val();
+            let entries = [];
+
+            // Expected shape: { pushKey1: {action, batch, ...}, pushKey2: {...} }
+            // Defensive fallback: if recentChanges itself was ever overwritten with a
+            // single flat entry (no push-key layer), detect and still show it instead
+            // of silently rendering nothing.
+            if (raw && typeof raw === "object" && "timestamp" in raw && "action" in raw) {
+                entries = [{ id: snapshot.key, ...raw }];
+            } else {
+                Object.keys(raw || {}).forEach(key => {
+                    const val = raw[key];
+                    if (val && typeof val === "object") entries.push({ id: key, ...val });
+                });
+            }
+
+            entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            allChanges = entries;
+            applyFilters();
+        }, (err) => {
+            list.innerHTML = `<div class="alert alert-error"><i class="fa-solid fa-triangle-exclamation"></i>&nbsp; Couldn't load recent changes — ${escapeHtml(err.message)}. If this says "permission_denied", your Firebase Realtime Database rules are blocking reads on the <code>recentChanges</code> path.</div>`;
+        });
+}
+
+function renderList(data) {
+    const list = document.getElementById("changesList");
+
+    if (data.length === 0) {
+        list.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div><div class="empty-title">No matches</div><div class="text-secondary">Try a different search or batch filter.</div></div>`;
+        return;
+    }
+
+    list.innerHTML = data.map(c => {
+        const icon = fieldIcons[c.field] || "fa-pen";
+        const dateText = c.timestamp ? new Date(c.timestamp).toLocaleString() : "N/A";
+        const locationBits = [c.batch, c.day, c.period ? `Period ${c.period}` : null, c.time]
+          .filter(Boolean).join(" • ");
+
+        return `
+          <div class="change-row">
+            <div class="change-icon"><i class="fa-solid ${icon}"></i></div>
+            <div class="change-main">
+              <div class="change-title">
+                ${escapeHtml(c.action || (c.field ? c.field + " changed" : "Updated"))}
+                <span class="badge badge-neutral">${escapeHtml(safe(c.batch))}</span>
+              </div>
+              <div class="change-meta">${escapeHtml(locationBits || "N/A")} • by ${escapeHtml(safe(c.teacher))}</div>
+              <div class="change-diff">
+                <span class="diff-before">${escapeHtml(safe(c.before))}</span>
+                <span class="diff-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                <span class="diff-after">${escapeHtml(safe(c.after))}</span>
+              </div>
+            </div>
+            <div class="change-time">${escapeHtml(dateText)}</div>
+          </div>
+        `;
+    }).join("");
+}
+
+function applyFilters() {
+    const text = document.getElementById("searchBox").value.toLowerCase();
+    const batch = document.getElementById("batchFilter").value;
+
+    const filtered = allChanges.filter(ch => {
+        if (batch && ch.batch !== batch) return false;
+        if (!text) return true;
+        return JSON.stringify(ch).toLowerCase().includes(text);
+    });
+
+    renderList(filtered);
+}
+
+document.getElementById("searchBox").addEventListener("input", applyFilters);
+document.getElementById("batchFilter").addEventListener("change", applyFilters);
+
+loadRecentChanges();
+</script>
+
+</body>
+</html>
