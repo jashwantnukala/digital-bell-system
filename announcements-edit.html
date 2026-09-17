@@ -17,6 +17,16 @@
     .ann-row h3 { font-size: var(--fs-card-title); font-weight: 600; margin-bottom: var(--sp-1); }
     .ann-row p { font-size: var(--fs-body); margin-bottom: var(--sp-2); white-space: pre-wrap; }
     .ann-actions { display: flex; gap: var(--sp-2); flex-shrink: 0; }
+
+    #annList {
+      max-height: 560px;
+      overflow-y: auto;
+      padding-right: var(--sp-2);
+    }
+    #annList::-webkit-scrollbar { width: 8px; }
+    #annList::-webkit-scrollbar-track { background: transparent; }
+    #annList::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-pill); }
+    #annList::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
   </style>
 </head>
 
