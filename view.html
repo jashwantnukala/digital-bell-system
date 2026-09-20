@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Timetable</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650&display=swap');</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="shell.js" defer></script>
+  <style>
+    .slot { font-weight: 600; width: 160px; }
+    .cell-sub { display: block; font-size: var(--fs-meta); color: var(--text-muted); margin-top: 2px; }
+    th.today-col { color: var(--accent); }
+  </style>
+</head>
+
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="app-shell">
+    <div class="topbar">
+      <a class="brand" href="index.html"><span class="bell-mark"><i class="fa-solid fa-bell"></i></span> Digital Smart Bell System</a>
+      <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+      <nav>
+        <a class="nav-link" href="index-student.html">Home</a>
+        <a class="nav-link active" href="view.html">Timetable</a>
+        <a class="nav-link" href="announcements-view.html">Announcements</a>
+        <a class="nav-link" href="recent.html">Recent Changes</a>
+      </nav>
+      <div class="right"><span class="role-tag">Student</span></div>
+    </div>
+
+    <div class="main" id="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">View Timetable</h1>
+          <p class="subtitle text-secondary">Select a batch to see its weekly schedule.</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary" id="batch1Btn">Batch 1</button>
+          <button class="btn btn-secondary" id="batch2Btn">Batch 2</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th data-day="Monday">Monday</th>
+                <th data-day="Tuesday">Tuesday</th>
+                <th data-day="Wednesday">Wednesday</th>
+                <th data-day="Thursday">Thursday</th>
+                <th data-day="Friday">Friday</th>
+              </tr>
+            </thead>
+            <tbody id="timetable">
+              <tr><td colspan="6" class="loading-row">Select a batch above to load its timetable.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const db = firebase.database();
+    const tbody = document.getElementById("timetable");
+    const STORAGE_KEY = "sbs_selected_batch";
+    const todayName = new Date().toLocaleDateString(undefined, { weekday: 'long' });
+
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function safe(obj, field) {
+      return obj && obj[field] ? obj[field] : "N/A";
+    }
+
+    // Highlight today's column header
+    document.querySelectorAll("th[data-day]").forEach(th => {
+      if (th.dataset.day === todayName) th.classList.add("today-col");
+    });
+
+    // Same time-parsing approach used by the dashboard/simulator, so "current
+    // class" highlighting is consistent everywhere it appears.
+    function parseTimes(timeStr) {
+      if (!timeStr) return { start: null, end: null };
+      const regex = /(\d{1,2}:\d{2})\s*(am|pm|AM|PM)?/g;
+      const matches = [...timeStr.matchAll(regex)];
+      if (matches.length === 0) return { start: null, end: null };
+      const toDate = (hhmm, mer) => {
+        const parts = hhmm.split(':').map(s => parseInt(s,10));
+        let h = parts[0], m = parts[1];
+        if (mer) mer = mer.toLowerCase();
+        if (mer === 'pm' && h < 12) h += 12;
+        if (mer === 'am' && h === 12) h = 0;
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+      };
+      const first = matches[0], last = matches[matches.length-1];
+      const firstMer = first[2] ? first[2].toLowerCase() : null;
+      const lastMer = last[2] ? last[2].toLowerCase() : null;
+      const start = toDate(first[1], firstMer || lastMer);
+      const end = toDate(last[1], lastMer || firstMer);
+      return { start: start.getTime(), end: end.getTime() };
+    }
+
+    function renderTable(rows) {
+      const now = Date.now();
+
+      const rowsHtml = rows.map((row) => {
+        const { start, end } = parseTimes(row.time || "");
+        const isCurrent = start && end && now >= start && now <= end;
+        const isNext = start && start > now && !rows.some(r => {
+          const t = parseTimes(r.time || "");
+          return t.start && t.start > now && t.start < start;
+        });
+        const rowClass = isCurrent ? "row-current" : (isNext ? "row-next" : "");
+
+        return `
+          <tr class="${rowClass}">
+            <td class="slot">${escapeHtml(row.time)}</td>
+            <td>${escapeHtml(safe(row.Monday, "subject"))}<span class="cell-sub">${escapeHtml(safe(row.Monday, "room"))}</span></td>
+            <td>${escapeHtml(safe(row.Tuesday, "subject"))}<span class="cell-sub">${escapeHtml(safe(row.Tuesday, "room"))}</span></td>
+            <td>${escapeHtml(safe(row.Wednesday, "subject"))}<span class="cell-sub">${escapeHtml(safe(row.Wednesday, "room"))}</span></td>
+            <td>${escapeHtml(safe(row.Thursday, "subject"))}<span class="cell-sub">${escapeHtml(safe(row.Thursday, "room"))}</span></td>
+            <td>${escapeHtml(safe(row.Friday, "subject"))}<span class="cell-sub">${escapeHtml(safe(row.Friday, "room"))}</span></td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = rowsHtml.join("");
+    }
+
+    function loadBatch(batch) {
+      tbody.innerHTML = `<tr><td colspan="6" class="loading-row">Loading timetable…</td></tr>`;
+      document.getElementById("batch1Btn").classList.toggle("active", batch === "Batch1");
+      document.getElementById("batch2Btn").classList.toggle("active", batch === "Batch2");
+      localStorage.setItem(STORAGE_KEY, batch);
+
+      db.ref("timetables/" + batch).once("value").then((snap) => {
+        if (!snap.exists()) {
+          tbody.innerHTML = `<tr><td colspan="6" class="loading-row">No data found for this batch.</td></tr>`;
+          return;
+        }
+        renderTable(snap.val());
+      }).catch(err => {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="alert alert-error"><i class="fa-solid fa-triangle-exclamation"></i>&nbsp; Couldn't load timetable — ${escapeHtml(err.message)}</div></td></tr>`;
+      });
+    }
+
+    document.getElementById("batch1Btn").onclick = () => loadBatch("Batch1");
+    document.getElementById("batch2Btn").onclick = () => loadBatch("Batch2");
+
+    // Remember and restore the last batch viewed, shared with the student dashboard.
+    loadBatch(localStorage.getItem(STORAGE_KEY) || "Batch1");
+
+    // Keep the current/next highlight accurate if the page is left open.
+    setInterval(() => {
+      const active = document.querySelector("#batch1Btn.active") ? "Batch1" : (document.querySelector("#batch2Btn.active") ? "Batch2" : null);
+      if (active) {
+        db.ref("timetables/" + active).once("value").then(snap => {
+          if (snap.exists()) renderTable(snap.val());
+        }).catch(() => {});
+      }
+    }, 60000);
+  </script>
+
+</body>
+</html>
